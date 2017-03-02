@@ -1,0 +1,31 @@
+﻿/*#region Colors*/
+body {
+    background-color: black;
+}
+
+a, a:hover,
+.ui.list > .item .header{
+    color: #42DCA3;
+}
+
+.ui.list > .item .description {
+    color: white;
+}
+
+.recapApp {
+    background-color: black;
+    color: white;
+    margin-top: 60px;
+}
+/*#endregion*/
+
+/*#region General Styles*/
+.ui.icon.input, .results {
+    min-width: 100%;
+}
+
+.content .header:hover{
+    text-decoration: underline;
+    cursor: pointer;
+}
+/*#endregion*/
