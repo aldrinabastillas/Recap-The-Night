@@ -1,10 +1,15 @@
 ﻿(function () {
     'use strict';
-    var app = angular.module('setlistApp', []);
+    /**
+     * Module
+     */
+    var app = angular.module('setlistApp', ['ngCookies']);
 
-    app.controller('SetlistController', ['$rootScope', '$scope', '$http', '$window', '$sce',
-        function ($rootScope, $scope, $http, $window, $sce) {
-
+    /**
+     * Controller 
+     */
+    app.controller('SetlistController', ['$cookies', '$scope', '$http', '$window', 
+        function ($cookies, $scope, $http, $window) {
             /**
              *Given an artist, display setlists
              * Called by link function in recap-directives.js
@@ -24,7 +29,7 @@
                     $scope.selectedArtist = artist;
                     $scope.setlists = setlistArr;
                 }).catch(function (e) {
-                    $scope.error = true;
+                    $scope.error = true; //TODO
                 });
             }; //end getSetlists
 
@@ -46,8 +51,7 @@
                         songs: response.data,
                     };
                 }).catch(function (err) {
-                    //TODO:
-                    $scope.error = true;
+                    $scope.error = true; //TODO
                 });
             }; //end getSetlistSongs
 
@@ -60,47 +64,55 @@
                 var preview = $('#' + songId).get(0);
                 if (preview.paused) {
                     preview.play();
-                }
-                else {
+                } else {
                     preview.pause();
                 }
             }; //end playPreview
 
 
             /**
-             * Opens a new window to do authentication
+             * Opens a new window to do Spotify authentication
              */
-            $scope.loginPopup = function () {
-                sessionStorage.user = JSON.stringify($scope.playlist);
+            $scope.spotifyLogin = function () {
+                sessionStorage.playlist = JSON.stringify($scope.playlist); //save to sessionStorage
                 var popup = $window.open('/recap/templates/spotifyLogin.html',
                     'Login to Spotify', 'width=700,height=500,left=100,top=100');
             };
 
+
             /**
-             * Sends list of songs to server, creates a Spotify
-             * playlist, then returns its URL
+             * Opens a new window to do Instagram authentication
              */
-            $scope.savePlaylist = function () {
-                var playlist = JSON.stringify($scope.playlist);
-                $http.post('/recap/savePlaylist', playlist).then(function (response) {
-                    $scope.playlistUrl = $sce.trustAsResourceUrl(response.data);
-                }).catch(function (err) {
-                    console.log(err);
-                });
+            $scope.instagramLogin = function () {
+                var popup = $window.open('/recap/templates/instagramLogin.html',
+                    'Login to Instagram', 'width=700,height=500,left=100,top=100');
             };
+
+            /**
+            *
+            */
+            $scope.instagramSearch = function(){
+                $http.get('/recap/instagramSearch/' + $scope.selectedArtist).then(function () {
+
+                }).catch(function (err) {
+                });
+            }
+
 
         }]); //end controller
 
-    /* Private Methods */
+
+    /** 
+     * Private Functions
+     */
+
     /**
      * Parse dates from Setlist.fm into JS format
      * @param dateString
      */
     function parseDate(dateString) {
         var split = dateString.split('-'); //dates from setlist.fm are 'DD-MM-YYY'
-        //which is incompatible with JS and Angular
-
-        return new Date(split[2], split[1] - 1, split[0]); //year, month (0-11), date
+        return new Date(split[2], split[1] - 1, split[0]); //JS format: year, month (0-11), date
     }; //end parseDate
 
 

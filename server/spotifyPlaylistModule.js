@@ -8,8 +8,10 @@
     var keys = require('./privateKeys');
     var request = require('request');
     var querystring = require('querystring');
+    var spotify = require('../../shared/server/spotifyQueryModule.js');
     var cookieParser = require('cookie-parser');
     app.use(cookieParser());
+
 
     /**
      * Private Properties
@@ -19,8 +21,15 @@
     var redirect_uri = keys.spotify_redirect_uri; // Your redirect uri
     var client_secret = keys.spotify_client_secret; // Your secret
 
+
     /**
      * Public Functions
+     */
+
+    /**
+     * Explicit OAuth
+     * See https://developer.spotify.com/web-api/authorization-guide/#authorization-code-flow
+     * @param res - HTTP Request object
      */
     exports.spotifyLogin = function (res) {
         var state = generateRandomString(16);
@@ -37,12 +46,48 @@
                 state: state
             })
         );
-    };
+    }; //end spotifyLogin
 
+
+    /**
+     * Called from getSongInfo() in setlistModule.js
+     * @param song {string} - Song title
+     */
+    exports.getSong = function (song, artist) {
+        return new Promise(function (resolve, reject) {
+            var endpoint = 'https://api.spotify.com/v1/search'
+            var params = '?q=track:' + song + ' artist:' + artist + '&type=track';
+            spotify.getSpotifyQuery(endpoint + params).then(function (result) {
+                if (result.tracks.total > 0) {
+                    var tempSong = result.tracks.items[0];
+                    var info = {
+                        id: tempSong['id'],
+                        name: tempSong['name'],
+                        preview: tempSong['preview_url'],
+                        uri: tempSong['uri'],
+                        image: tempSong.album.images[2]['url'],
+                        album: tempSong.album['name'],
+                        artist: tempSong.artists[0]['name'],
+                    };
+                    resolve(info);
+                } else {
+                    reject(reason);
+                }
+            }).catch(function (reason) {
+                reject(reason);
+            });
+
+        });
+    }; //end getSong
+
+
+    /**
+     *
+     */
     exports.savePlaylist = function (req, res, code, playlist) {
         return new Promise(function (resolve, reject) {
-            //1: Get access token
-            getAccessToken(req, res, code).then(function (accessToken) {
+            //1: Exchange User Code for Access Token
+            getTokenWithCode(req, res, code).then(function (accessToken) {
                 //2: Get User ID
                 getUserId(accessToken).then(function (userId) {
                     //3: Create Playlist 
@@ -67,18 +112,26 @@
         });
     }; //end savePlaylist
 
-    /* Private Functions*/
+
+    /**
+     * Private Functions 
+     */
+
+    /*
+     *
+     */
     function addPlaylistSongs(userId, accessToken, playlistId, songs) {
         return new Promise(function (resolve, reject) {
             var body = {
                 uris: [],
             }
+
             songs.forEach(function (song) {
                 body.uris.push(song.uri);
             });
 
             var endpoint = 'https://api.spotify.com/v1/users/' + userId + '/playlists/' + playlistId + '/tracks';
-            postSpotifyData(endpoint, accessToken, body).then(function (response) {
+            spotify.postSpotifyData(endpoint, accessToken, body).then(function (response) {
                 resolve(response.snapshot_id);
             }).catch(function (err) {
                 reject(err);
@@ -87,14 +140,22 @@
     }; //end addSongs
 
 
+    /**
+     * 
+     * @param userId
+     * @param accessToken
+     * @param playlistTitle
+     */
     function createPlaylist(userId, accessToken, playlistTitle) {
         return new Promise(function (resolve, reject) {
             var body = {
                 name: playlistTitle,
                 public: false
             }
+
             var endpoint = 'https://api.spotify.com/v1/users/' + userId + '/playlists';
-            postSpotifyData(endpoint, accessToken, body).then(function (response) {
+
+            spotify.postSpotifyData(endpoint, accessToken, body).then(function (response) {
                 resolve(response);
             }).catch(function (err) {
                 reject(err);
@@ -103,28 +164,34 @@
     }; //end createPlaylist
 
 
+    /**
+     * 
+     * @param accessToken
+     */
     function getUserId(accessToken) {
         return new Promise(function (resolve, reject) {
             var endpoint = 'https://api.spotify.com/v1/me';
-            getSpotifyQuery(endpoint, accessToken).then(function (result) {
+            spotify.getSpotifyQuery(endpoint, accessToken).then(function (result) {
                 resolve(result.id);
             }).catch(function (err) {
                 reject(err);
             });
         });
-    }
+    }; //end getUserId
 
-    function getAccessToken(req, res, code) {
-        // Gets an access token for Spotify's Web APIs
-        // See https://developer.spotify.com/web-api/authorization-guide/#client-credentials-flow
 
+    /**
+     * See https://developer.spotify.com/web-api/authorization-guide/#authorization-code-flow
+     * @param req - HTTP Request Object
+     * @param res - HTTP Response Object
+     * @param code - User's authentication code
+     */
+    function getTokenWithCode(req, res, code) {
         return new Promise(function (resolve, reject) {
             //current token is still valid
             if (req.cookies && req.cookies.token && Date.now() < req.cookies.login_expire) {
                 resolve(req.cookies.login_token);
-            }
-            //no token or expired
-            else {
+            } else { //no token or expired
                 var authOptions = getAuthOptions(req.cookies, code);
 
                 request.post(authOptions, function (error, response, body) {
@@ -137,17 +204,18 @@
                         res.cookie('login_refresh', body.refresh_token);
                         res.cookie('login_expire', expire);
                         resolve(access_token);
-                    }
-                    else {
+                    } else {
                         reject('Response from SpotifyAPIs: ' + response.statusMessage);
                     }
                 });
             }
         }); //end Promise
-    }; //end getAccessToken
+    }; //end getTokenWithCode
+
 
     /**
      * Format POST request depending on if we have a valid token
+     * Called by getTokenWithCode
      * @param cookies - Array of cookies
      */
     function getAuthOptions(cookies, code) {
@@ -166,54 +234,13 @@
         if (cookies && cookies.refresh) {
             authOptions.form['grant_type'] = 'refresh_token';
             authOptions.form['refresh_token'] = cookies.login_refresh;
-        }
-        else {
+        } else {
             authOptions.form['grant_type'] = 'authorization_code';
-            authOptions.form['code'] = (cookies && cookies.code) ? cookies.code : code ;
+            authOptions.form['code'] = (cookies && cookies.spotifyCode) ? cookies.spotifyCode : code;
         }
         return authOptions;
-    }
+    } //end getAuthOptions
 
-    function getSpotifyQuery(endpoint, accessToken) {
-        return new Promise(function (resolve, reject) {
-            var options = {
-                url: endpoint,
-                headers: {
-                    'Authorization': 'Bearer ' + accessToken
-                },
-                json: true
-            };
-            request.get(options, function (error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    resolve(body);
-                }
-                else {
-                    reject('Response from SpotifyAPIs: ' + response.statusMessage);
-                }
-            });
-        });
-    };
-
-    function postSpotifyData(endpoint, accessToken, body) {
-        return new Promise(function (resolve, reject) {
-            var options = {
-                url: endpoint,
-                headers: {
-                    'Authorization': 'Bearer ' + accessToken
-                },
-                body: body,
-                json: true
-            };
-            request.post(options, function (error, response, body) {
-                if (!error && response.statusCode == 201) {
-                    resolve(body);
-                }
-                else {
-                    reject('Response from SpotifyAPIs: ' + response.statusMessage);
-                }
-            });
-        });
-    }
 
     /**
      * Generates a random string containing numbers and letters
@@ -228,5 +255,5 @@
             text += possible.charAt(Math.floor(Math.random() * possible.length));
         }
         return text;
-    };
+    }; //end generateRandomString
 })();

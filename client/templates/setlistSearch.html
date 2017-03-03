@@ -1,42 +1,62 @@
-﻿<div  ng-controller="SetlistController" >
+﻿<div ng-controller="SetlistController">
     <!-- Step 1: Search for an Artist -->
-    <div ng-hide="setlists" id="artistSearch" class="ui search">
-        <div class="ui icon input">
-            <input class="prompt" type="text"
-                   placeholder="Search for an artist">
-            <i class="search icon"></i>
+    <div class="col-md-8 col-lg-8 col-md-offset-2 col-lg-offset-2">
+        <div ng-hide="setlists" id="artistSearch" class="ui search">
+            <div class="ui icon input">
+                <input class="prompt" type="text"
+                       placeholder="Search for an artist">
+                <i class="search icon"></i>
+            </div>
+            <div class="results"></div>
         </div>
-        <div class="results"></div>
     </div>
-
+    
     <!-- Step 2: Display and Select a show -->
-    <div ng-hide="playlist" ng-show="setlists" class="ui ordered list">
-        <div class="item" ng-repeat="setlist in setlists" ng-click="getSetlistSongs(setlist)">
-            <div class="content">
-                <div class="header">{{setlist.venue}}</div>
-                <div class="description">{{setlist.date | date : 'mediumDate'}}</div>
+    <div class="col-md-6 col-lg-6 col-md-offset-4 col-lg-offset-4">
+        <div ng-hide="playlist" ng-show="setlists" class="ui ordered list">
+            <div class="item" ng-repeat="setlist in setlists" ng-click="getSetlistSongs(setlist)">
+                <div class="content">
+                    <div class="header">{{setlist.venue}}</div>
+                    <div class="description">{{setlist.date | date : 'mediumDate'}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div ng-show="playlist&&!playlistUrl">
+        <!-- Step 3a: Display and Save songs -->
+        <div class="col-md-6 col-lg-6">
+            <div class="ui ordered list">
+                <div class="btn btn-success" target="popup" ng-click="spotifyLogin()">
+                    Log in and save
+                </div>
+                <div class="item" ng-repeat="song in playlist.songs">
+                    <img class="ui avatar image" src="{{song.image}}">
+                    <div class="content">
+                        <div ng-click="playPreview(song.id)" class="header" title="Listen to Preview">
+                            {{song.name}}
+                        </div>
+                        <div class="description">
+                            by {{song.artist}} on {{song.album}}
+                        </div>
+                        <div>
+                            <audio id="{{song.id}}" src="{{song.preview}}"></audio>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Step 3b: Display Instagram Pictures -->
+        <div class="col-md-6 col-lg-6">
+            <div class="btn btn-success" target="popup" ng-click="instagramLogin()">
+                Log into Instagram
+            </div>
+            <div class="btn btn-success" ng-click="instagramSearch()">
+                Search
             </div>
         </div>
     </div>
 
-    <!-- Step 3: Display and Save songs -->
-    <div ng-show="playlist&&!playlistUrl" class="ui ordered list">
-        <div class="btn btn-success" target="popup" ng-click="loginPopup()">
-            Log in and save
-        </div>
-        <div class="item" ng-repeat="song in playlist.songs">
-            <img class="ui avatar image" src="{{song.image}}">
-            <div class="content">
-                <div ng-click="playPreview(song.id)" class="header" title="Listen to Preview">
-                    {{song.name}}
-                </div>
-                <div class="description">
-                    by {{song.artist}} on {{song.album}}
-                </div>
-                <div>
-                    <audio id="{{song.id}}" src="{{song.preview}}"></audio>
-                </div>
-            </div>
-        </div>
-    </div>
+    
 </div>
