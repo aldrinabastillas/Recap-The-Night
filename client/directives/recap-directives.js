@@ -1,14 +1,34 @@
 ﻿(function () {
     angular.module('recap-directives', [])
-        .directive('setlistSearch', function () {
+        .directive('artistSearch', function () {
             return {
                 restrict: 'E',
-                templateUrl: '/recap/templates/setlistSearch.html',
-                controller: 'SetlistController',
+                templateUrl: '/recap/templates/artistSearch.html',
+                controller: 'SearchController',
                 scope: {
                     getSetlists: '&getSetlists',
                 },
                 link: function (scope, element) {
+                    /**
+                     * jQuery to control step element
+                     */
+                    $('#stepOne').click(function () {
+                        $('#artistSearch').removeClass('ng-hide');
+                        $('#showList').addClass('ng-hide');
+                        $('#songList').addClass('ng-hide');
+                    });
+
+                    $('#stepTwo').click(function () {
+                        $('#artistSearch').addClass('ng-hide');
+                        $('#showList').removeClass('ng-hide');
+                        $('#songList').addClass('ng-hide');
+                    });
+
+                    $('#stepThree').click(function () {
+                        $('#artistSearch').addClass('ng-hide');
+                        $('#showList').addClass('ng-hide');
+                        $('#songList').removeClass('ng-hide');
+                    });
 
                     /**
                      * Free-text search Spotify's library for an artist
@@ -44,7 +64,7 @@
                             scope.getSetlists(artist);
                         }
                     }); //end artistSearch
-                }
+                } //end link function
             }
         });
 })(); //end closure

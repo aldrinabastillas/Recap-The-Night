@@ -3,14 +3,21 @@ body {
     background-color: black;
 }
 
+/*.ui.steps .step.active .title*/
 a, a:hover,
-.ui.list > .item .header{
+.ui.list > .item .header{  
     color: #42DCA3;
 }
+
+
 
 .ui.list > .item .description {
     color: white;
 }
+
+/*.ui.steps .step.active{
+    background: #4C4E4F;
+}*/
 
 .recapApp {
     background-color: black;
@@ -27,5 +34,9 @@ a, a:hover,
 .content .header:hover{
     text-decoration: underline;
     cursor: pointer;
+}
+
+.ui.fluid.steps{
+    margin-bottom: 5%;
 }
 /*#endregion*/

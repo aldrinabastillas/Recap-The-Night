@@ -12,7 +12,6 @@
     var cache = new NodeCache();
     var setlist = require('./server/setlistModule');
     var spotify = require('./server/spotifyPlaylistModule');
-    var instagram = require('./server/instagramModule');
 
 
     /**
@@ -66,15 +65,6 @@
 
 
     /**
-     * Called from /module/recap/client/templates/instagramLogin.html
-     * Redirects to the Instagram authentication page
-     */
-    router.get('/instagramLogin', (req, res) => {
-        instagram.instagramLogin(res);
-    });
-
-
-    /**
      * Called by authentication redirect
      * Redirects to a HTML page that shows the saved playlist
      */
@@ -87,40 +77,6 @@
             res.sendFile(pathConcat('/client/templates/spotifyLoggedIn.html'));
         } else {
             res.sendFile(pathConcat('/client/templates/spotifyError.html'));
-        }
-    });
-
-
-    /**
-     * Called by authentication redirect
-     * Redirects to a HTML page that just closes itself
-     */
-    router.get('/instagramLoggedIn', (req, res) => {
-        var code = req.query.code;
-        if (code) {
-            cache.set('instagramCode', code); //save in server cache
-            //instagram.getTokenWithCode(req, res, code);
-            res.sendFile(pathConcat('/client/templates/instagramLoggedIn.html'));
-        } else {
-            res.status(500).json('authentication code not received');
-        }
-    });
-
-
-    /**
-     * 
-     */
-    router.get('/instagramSearch/:artist', (req, res) => {
-        var artist = req.params.artist;
-        var code = cache.get('instagramCode');
-        if (artist && code) {
-            instagram.instagramSearch(artist, code, req, res).then(function (media) {
-                res.json(media);
-            }).catch(function (reason) {
-                res.status(500).json(reason);
-            });
-        } else {
-            res.status(500).json('artist was not provided');
         }
     });
 

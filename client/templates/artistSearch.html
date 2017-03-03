@@ -1,7 +1,33 @@
-﻿<div ng-controller="SetlistController">
+﻿<div class="row">
+    <!-- Steps -->
+    <div class="col-md-6 col-lg-6 col-md-offset-3 col-lg-offset-3">
+        <div class="ui fluid mini steps">
+            <a id="stepOne" class="active step">
+                <i class="users icon"></i>
+                <div class="content">
+                    <div class="title">Artist</div>
+                </div>
+            </a>
+            <a id="stepTwo" class="disabled step">
+                <i class="calendar icon"></i>
+                <div class="content">
+                    <div class="title">Show</div>
+                </div>
+            </a>
+            <a id="stepThree" class="disabled step">
+                <i class="music icon"></i>
+                <div class="content">
+                    <div class="title">Setlist</div>
+                </div>
+            </a>
+
+        </div>
+    </div>
+</div>
+<div class="row">
     <!-- Step 1: Search for an Artist -->
-    <div class="col-md-8 col-lg-8 col-md-offset-2 col-lg-offset-2">
-        <div ng-hide="setlists" id="artistSearch" class="ui search">
+    <div class="col-md-6 col-lg-6 col-md-offset-3 col-lg-offset-3">
+        <div ng-hide="selectedArtist" id="artistSearch" class="ui search">
             <div class="ui icon input">
                 <input class="prompt" type="text"
                        placeholder="Search for an artist">
@@ -10,10 +36,10 @@
             <div class="results"></div>
         </div>
     </div>
-    
-    <!-- Step 2: Display and Select a show -->
+
     <div class="col-md-6 col-lg-6 col-md-offset-4 col-lg-offset-4">
-        <div ng-hide="playlist" ng-show="setlists" class="ui ordered list">
+        <!-- Step 2: Display and Select a show -->
+        <div id="showList" ng-hide="playlist" ng-show="selectedArtist" class="ui animated list">
             <div class="item" ng-repeat="setlist in setlists" ng-click="getSetlistSongs(setlist)">
                 <div class="content">
                     <div class="header">{{setlist.venue}}</div>
@@ -21,15 +47,13 @@
                 </div>
             </div>
         </div>
-    </div>
-    
-    <div ng-show="playlist&&!playlistUrl">
-        <!-- Step 3a: Display and Save songs -->
-        <div class="col-md-6 col-lg-6">
-            <div class="ui ordered list">
-                <div class="btn btn-success" target="popup" ng-click="spotifyLogin()">
-                    Log in and save
-                </div>
+
+        <!-- Step 3: Display and Save songs -->
+        <div id="songList" ng-show="playlist">
+            <div class="btn btn-success" target="popup" ng-click="spotifyLogin()">
+                Log in and save
+            </div>
+            <div class="ui animated list">
                 <div class="item" ng-repeat="song in playlist.songs">
                     <img class="ui avatar image" src="{{song.image}}">
                     <div class="content">
@@ -46,17 +70,9 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Step 3b: Display Instagram Pictures -->
-        <div class="col-md-6 col-lg-6">
-            <div class="btn btn-success" target="popup" ng-click="instagramLogin()">
-                Log into Instagram
-            </div>
-            <div class="btn btn-success" ng-click="instagramSearch()">
-                Search
-            </div>
-        </div>
     </div>
 
-    
 </div>
+
+
+    
