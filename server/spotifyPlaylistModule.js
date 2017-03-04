@@ -82,7 +82,7 @@
 
 
     /**
-     *
+     * TODO: http://solutionoptimist.com/2013/12/27/javascript-promise-chains-2/
      */
     exports.savePlaylist = function (req, res, code, playlist) {
         return new Promise(function (resolve, reject) {

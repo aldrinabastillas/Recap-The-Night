@@ -20,27 +20,29 @@
     exports.getSetlists = function (artist) {
         return new Promise(function (resolve, reject) {
             //cache a Spotify Access token ahead of time for later queries
-            token.getAccessToken(); 
+            token.getAccessToken();
 
-            getArtistId(artist).then(function (artistId) {
-                //get list of setlists given an artistId
-                var url = 'http://api.setlist.fm/rest/0.1/artist/' + artistId + '/setlists.json';
-                request.get(url, function (error, response, body) {
-                    if (!error && response.statusCode === 200) {
-                        var obj = JSON.parse(body);
-                        if (obj.setlists.setlist.length > 0) {
-                            resolve(obj.setlists.setlist);
+            getArtistId(artist)
+                .then(function (artistId) {
+                    //get list of setlists given an artistId
+                    var url = 'http://api.setlist.fm/rest/0.1/artist/' + artistId + '/setlists.json';
+                    request.get(url, function (error, response, body) {
+                        if (!error && response.statusCode === 200) {
+                            body = JSON.parse(body);
+                            var setlists = parseSetlists(body.setlists.setlist);
+                            resolve(setlists);
                         }
                         else {
-                            reject('getSetlists(): Setlist.fm returned an error.');
+                            reject(artist + ': ' + body);
                         }
-                    }
+                    });
+                })
+                .catch(function (reason) {
+                    reject(reason);
                 });
-            }).catch(function (reason) {
-                reject(reason);
-            });
         });
-    }
+    };
+
 
     /**
      * Given set(s) of songs, get each songs' info from Spotify
@@ -52,11 +54,18 @@
 
             //call getSongInfo on all songs
             var tasks = songs.map(getSongInfo);
-            var setlist = Promise.all(tasks).then(function (response) {
-                resolve(response);
-            }).catch(function (error) {
-                reject(error);
-            });
+            var setlist = Promise.all(tasks)
+                .then(function (response) {
+                    var playlist = {
+                        title: sets.title,
+                        songs: response
+                    };
+
+                    resolve(playlist);
+                })
+                .catch(function (error) {
+                    reject(error);
+                });
         }); //end promise
     };
 
@@ -68,16 +77,19 @@
     /**
      * Given a song title and artist, get details from Spotify
      * like Spotify ID, preview, album art, etc.
+     * Called by getSetlistSongs
      * @param song - Object returned by parseSingleSet 
      */
     function getSongInfo(song) {
         return new Promise(function (resolve, reject) {
-            spotify.getSong(song.name, song.artist).then(function (response) {
-                resolve(response);
-            }).catch(function (error) {
-                //if not found in spotify, just return the song and artist name
-                resolve(song);
-            });
+            spotify.getSong(song.name, song.artist)
+                .then(function (response) {
+                    resolve(response);
+                })
+                .catch(function (error) {
+                    //if not found in spotify, just return the song and artist name
+                    resolve(song);
+                });
         });
     }
 
@@ -100,7 +112,7 @@
                     }
                 }
                 else {
-                    reject('getArtistId(): Setlist.fm returned an error.');
+                    reject(artist + ': ' + body);
                 }
             });
         });
@@ -129,6 +141,34 @@
     }
 
     /**
+     * 
+     * @param setlists
+     */
+    function parseSetlists(setlists) {
+        var setlistArr = [];
+        setlists.forEach(function (item) {
+            setlistArr.push({
+                date: parseDate(item['@eventDate']),
+                venue: item['venue']['@name'] + ', ' + item['venue']['city']['@name'],
+                id: item['@id'],
+                sets: item['sets']
+            });
+        });
+        return setlistArr;
+    };
+
+
+    /**
+     * Parse dates from Setlist.fm into JS format: year, month (0-11), date
+     * @param {string} dateString - Dates from setlist.fm are 'DD-MM-YYY'
+     */
+    function parseDate(dateString) {
+        var split = dateString.split('-');
+        return new Date(split[2], split[1] - 1, split[0]);
+    }; //end parseDate
+
+
+    /**
      * Given a sets object, which may have one set object, or an array of sets
      * return a single array of songs
      * @param sets
@@ -146,7 +186,7 @@
             songs = parseSingleSet(sets.set, artist);
         }
         return songs;
-    }
+    };
 
     /**
      * Given a set of songs, return an array of objects that just has
@@ -167,6 +207,6 @@
             });
         }
         return songs;
-    }
+    };
 
 })();

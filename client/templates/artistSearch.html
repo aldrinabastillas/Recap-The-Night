@@ -27,7 +27,7 @@
 <div class="row">
     <!-- Step 1: Search for an Artist -->
     <div class="col-md-6 col-lg-6 col-md-offset-3 col-lg-offset-3">
-        <div ng-hide="selectedArtist" id="artistSearch" class="ui search">
+        <div ng-hide="sc.selectedArtist" id="artistSearch" class="ui search">
             <div class="ui icon input">
                 <input class="prompt" type="text"
                        placeholder="Search for an artist">
@@ -39,8 +39,9 @@
 
     <div class="col-md-6 col-lg-6 col-md-offset-4 col-lg-offset-4">
         <!-- Step 2: Display and Select a show -->
-        <div id="showList" ng-hide="playlist" ng-show="selectedArtist" class="ui animated list">
-            <div class="item" ng-repeat="setlist in setlists" ng-click="getSetlistSongs(setlist)">
+        <!----> 
+        <div ng-hide="sc.playlist" ng-show="sc.selectedArtist" id="showList" class="ui animated list">
+            <div class="item" ng-repeat="setlist in sc.setlists" ng-click="sc.getSetlistSongs(setlist)">
                 <div class="content">
                     <div class="header">{{setlist.venue}}</div>
                     <div class="description">{{setlist.date | date : 'mediumDate'}}</div>
@@ -49,15 +50,16 @@
         </div>
 
         <!-- Step 3: Display and Save songs -->
-        <div id="songList" ng-show="playlist">
-            <div class="btn btn-success" target="popup" ng-click="spotifyLogin()">
+        <!---->
+        <div id="songList" ng-show="sc.playlist">
+            <div class="btn btn-success" target="popup" ng-click="sc.spotifyLogin()">
                 Log in and save
             </div>
             <div class="ui animated list">
-                <div class="item" ng-repeat="song in playlist.songs">
+                <div class="item" ng-repeat="song in sc.playlist.songs">
                     <img class="ui avatar image" src="{{song.image}}">
                     <div class="content">
-                        <div ng-click="playPreview(song.id)" class="header" title="Listen to Preview">
+                        <div ng-click="sc.playPreview(song.id)" class="header" title="Listen to Preview">
                             {{song.name}}
                         </div>
                         <div class="description">
