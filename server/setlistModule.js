@@ -12,12 +12,40 @@
     /** 
      * Public Functions
      */
+    exports.getSetlists = getSetlists;
+    exports.getSetlistSongs = getSetlistSongs;
+    exports.getVenues = getVenues;
+
+    /**
+     * Function Implementations
+     */
+
+    /**
+     * 
+     * @param {string} query - 
+     */
+    function getVenues(query) {
+        return new Promise(function (resolve, reject) {
+            var endpoint = 'http://api.setlist.fm/rest/0.1/search/venues.json?name=' + query
+            request.get(endpoint, function (error, response, body) {
+                if (!error && response.statusCode === 200) {
+                    body = JSON.parse(body);
+                    var venues = parseVenues(body.venues.venue);
+                    resolve(venues);
+                }
+                else {
+                    reject(query + ': ' + body);
+                }
+            });
+        });
+    };
+
 
     /**
      * Given an artist name, search for their most recent setlists
      * @param {string} artist
      */
-    exports.getSetlists = function (artist) {
+    function getArtistSetlists(artist) {
         return new Promise(function (resolve, reject) {
             //cache a Spotify Access token ahead of time for later queries
             token.getAccessToken();
@@ -44,11 +72,41 @@
     };
 
 
+     /**
+     * Given an artist name, search for their most recent setlists
+     * @param {string} artist
+     */
+    function getArtistSetlists(venueId) {
+        return new Promise(function (resolve, reject) {
+            //cache a Spotify Access token ahead of time for later queries
+            token.getAccessToken();
+
+//TODO:
+            // getArtistId(artist)
+            //     .then(function (artistId) {
+            //         //get list of setlists given an artistId
+            //         var url = 'http://api.setlist.fm/rest/0.1/artist/' + artistId + '/setlists.json';
+            //         request.get(url, function (error, response, body) {
+            //             if (!error && response.statusCode === 200) {
+            //                 body = JSON.parse(body);
+            //                 var setlists = parseSetlists(body.setlists.setlist);
+            //                 resolve(setlists);
+            //             }
+            //             else {
+            //                 reject(artist + ': ' + body);
+            //             }
+            //         });
+            //     })
+            //     .catch(function (reason) {
+            //         reject(reason);
+            //     });
+        });
+    };
     /**
      * Given set(s) of songs, get each songs' info from Spotify
      * @param sets - contains a set object, or an array of sets
      */
-    exports.getSetlistSongs = function (sets) {
+    function getSetlistSongs(sets) {
         return new Promise(function (resolve, reject) {
             var songs = parseSets(sets.sets, sets.artist);
 
@@ -71,10 +129,6 @@
 
 
     /**
-     * Private Functions
-     */
-
-    /**
      * Given a song title and artist, get details from Spotify
      * like Spotify ID, preview, album art, etc.
      * Called by getSetlistSongs
@@ -92,6 +146,7 @@
                 });
         });
     }
+
 
     /**
      * See http://api.setlist.fm/docs/rest.0.1.search.artists.html
@@ -138,7 +193,34 @@
                 }
             });
         });
-    }
+    };
+
+    function parseVenues(venues) {
+        var venueArr = [];
+
+        if(venues.length > 0){
+            venues.forEach(function (venue) {
+                venueArr.push(parseVenue(venue));
+            });
+        } else{
+            venueArr.push(parseVenue(venues));
+        }
+
+        return venueArr;
+    };
+
+
+    function parseVenue(venue) {
+        var city = venue['city']['@name'];
+        var country = venue['city']['country']['@name']
+        var description = (country) ? city + ', ' + country : city;
+        return {
+            id: venue['@id'],
+            title: venue['@name'],
+            description: description
+        };
+    };
+
 
     /**
      * 

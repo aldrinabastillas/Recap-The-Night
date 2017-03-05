@@ -3,9 +3,9 @@
     <div class="col-md-6 col-lg-6 col-md-offset-3 col-lg-offset-3">
         <div class="ui fluid mini steps">
             <a id="stepOne" class="active step">
-                <i class="users icon"></i>
+                <i id="stepOneIcon" class="users icon"></i>
                 <div class="content">
-                    <div class="title">Artist</div>
+                    <div id="stepOneTitle" class="title">Artist</div>
                 </div>
             </a>
             <a id="stepTwo" class="disabled step">
@@ -25,12 +25,12 @@
     </div>
 </div>
 <div class="row">
-    <!-- Step 1: Search for an Artist -->
+    <!-- Step 1: Search for an Artist / Venue -->
     <div class="col-md-6 col-lg-6 col-md-offset-3 col-lg-offset-3">
-        <div ng-hide="sc.selectedArtist" id="artistSearch" class="ui search">
+        <div ng-hide="sc.selectedArtist" id="searchPrompt" class="ui search">
             <div class="ui icon input">
                 <input class="prompt" type="text"
-                       placeholder="Search for an artist">
+                       placeholder="Type to search">
                 <i class="search icon"></i>
             </div>
             <div class="results"></div>
@@ -39,7 +39,6 @@
 
     <div class="col-md-6 col-lg-6 col-md-offset-4 col-lg-offset-4">
         <!-- Step 2: Display and Select a show -->
-        <!----> 
         <div ng-hide="sc.playlist" ng-show="sc.selectedArtist" id="showList" class="ui animated list">
             <div class="item" ng-repeat="setlist in sc.setlists" ng-click="sc.getSetlistSongs(setlist)">
                 <div class="content">
@@ -50,7 +49,6 @@
         </div>
 
         <!-- Step 3: Display and Save songs -->
-        <!---->
         <div id="songList" ng-show="sc.playlist">
             <div class="btn btn-success" target="popup" ng-click="sc.spotifyLogin()">
                 Log in and save
