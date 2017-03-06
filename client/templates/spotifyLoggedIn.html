@@ -1,20 +1,29 @@
 ﻿<html>
 <head>
     <link href="/vendor/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="/vendor/semantic-ui/dist/semantic.min.css" rel="stylesheet" type="text/css" />
     <link href="/recap/css/index.css" rel="stylesheet" type="text/css">
     <script src="/vendor/angular/angular.min.js"></script>
-    <script src="/recap/controllers/spotifyLoggedIn.js"></script>
+    <script src="/recap/controllers/loggedInController.js"></script>
 </head>
-<body ng-app="spotifyLoggedInApp" ng-controller="SpotifyLoggedInCtrl">
+
+<body ng-app="spotifyLoggedInApp" ng-controller="LoggedInCtrl as log">
     <!-- Step 4: Listen to playlist -->
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-6 col-lg-6 col-md-offset-4 col-lg-offset-4">
-                <iframe ng-show="playlistUrl" src="{{playlistUrl}}" width="300" height="450"
-                        frameborder="0" allowtransparency="true"></iframe>
-                <h3 ng-show="error">{{error}}</h3>
+                <iframe ng-show="log.playlistUrl" src="{{log.playlistUrl}}" width="300" height="450" frameborder="0" allowtransparency="true"></iframe>
+
+                <div ng-show="log.error" class="ui error message">
+                    <div class="header">
+                        Try again!
+                    </div>
+                    <p>Spotify servers returned an error</p>
+                </div>
+
             </div>
         </div>
     </div>
 </body>
+
 </html>

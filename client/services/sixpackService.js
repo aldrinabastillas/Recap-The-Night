@@ -1,55 +1,54 @@
 (function () {
     'use strict';
-    // var client_id = Date.now() + '-' + generateRandomString(4); 
-    var random_id = sixpack.persisted_client_id();
-    var base_url = 'http://localhost:5000'
-
-    // var session = new sixpack.Session({
-    //     client_id: client_id,
-    //     base_url: 'http://localhost:5000'
-    // });
-
+    //var base_url = 'http://localhost:5000';
+    var session = new sixpack.Session();
+    //var client_id = sixpack.persisted_client_id();
+    var client_id = 'test2';
+    
     angular
         .module('recapApp')
         .factory('sixpackService', sixpackService);
 
     sixpackService.$inject = ['$http'];
 
-
     function sixpackService($http) {
+        
         return {
             participate: participate,
             convert: convert,
         }
 
+        //Public Functions
+
         /**
-         * Simply returns the experiment's alternative, 
-         * either searching by artist or by venue
+         * 
+         */
+        function convert() {
+            return $http.get('/recap/getConvert/' + client_id);
+        }; //end convert
+
+        /**
+         * Returns the experiment's alternatives,
+         * search by artist or by venue, and the client Id
          */
         function participate() {
-            return $http.get('/recap/participate/' + random_id)
-                .then(getCompleted)
+            return $http.get('/recap/participate/' + client_id)
+                .then(getParticipateCompleted)
                 .catch(getFailed);
         }; //end participate
 
-        function getCompleted(response) {
-            var data = JSON.parse(response.data);
-            return data['alternative']['name'];
+
+        //Private Functions
+
+        function getParticipateCompleted(response) {
+            return JSON.parse(response.data);
         };
 
         function getFailed(error){
             return error;
         };
 
-        /**
-         * 
-         */
-        function convert() {
-            session.convert('recap-search', function (err, res) {
-                if (err) throw err;
-                return res;
-            });
-        }; //end convert
+        
 
     }; //end sixpackService
 

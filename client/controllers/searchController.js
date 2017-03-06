@@ -98,6 +98,8 @@
          * @param setlist
          */
         function getSetlistSongs(setlist) {
+            sixpackService.convert(); //test complete if user tried to view songs
+
             if (!setlist.sets) { //no songs were added yet, show link to edit on setlist.fm 
                 vm.selectedSetlistId = setlist.id;
                 getSetlistSongsCompleted();
@@ -150,7 +152,7 @@
                 vm.playlist = null;
             }
 
-            if (response.status !== 404 || response.status !== 500) {
+            if (response.status !== 404 && response.status !== 500) {
                 vm.setlists = response;
                 return response;
             } else {
@@ -184,7 +186,7 @@
             return new Promise(function (resolve, reject) {
                 sixpackService.participate()
                     .then(function (response) {
-                        resolve(response);
+                        resolve(response['alternative']['name']);
                     });
             });
         };

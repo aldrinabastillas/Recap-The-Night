@@ -7,6 +7,7 @@
     var spotify = require('./spotifyPlaylistModule');
     var token = require('../../shared/server/spotifyQueryModule');
     var parse = require('./setlistParseModule');
+    var querystring = require('querystring');
 
 
     //Public Functions
@@ -24,15 +25,23 @@
      */
     function getArtistId(artist) {
         return new Promise(function (resolve, reject) {
-            var url = 'http://api.setlist.fm/rest/0.1/search/artists.json?artistName=' + artist;
+            var param = artist.replace(new RegExp(' ', 'g'), '+');
+            var url = 'http://api.setlist.fm/rest/0.1/search/artists.json?artistName=' + param;
 
             request.get(url, function (error, response, body) {
                 if (!error && response.statusCode === 200) {
                     var obj = JSON.parse(body);
+                    //could be multiple results, due to collaborations
                     if (obj.artists.artist.length > 0) {
-                        resolve(obj.artists.artist[0]['@mbid']);
+                        obj.artists.artist.forEach(function(item){
+                            //found exact name match
+                            if(artist.toLowerCase() == item['@name'].toLowerCase()){
+                                resolve(item['@mbid']);
+                            }
+                        });
+                        resolve(obj.artists.artist[0]['@mbid']); //default first result
                     }
-                    else if (obj.artists.artist) {
+                    else if (obj.artists.artist) { //only one match found
                         resolve(obj.artists.artist['@mbid']);
                     }
                 }
