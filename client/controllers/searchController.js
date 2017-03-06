@@ -10,22 +10,26 @@
     function SearchController($http, $window, setlistService, sixpackService) {
         var vm = this; //ViewModel
 
-        //functions
+        //Functions
         vm.artistSearch = artistSearch;
-        vm.getSetlists = getSetlists;
+        vm.getArtistSetlists = getArtistSetlists;
         vm.getSetlistSongs = getSetlistSongs;
+        vm.getVenueSetlists = getVenueSetlists;
         vm.participate = participate;
         vm.playPreview = playPreview;
         vm.spotifyLogin = spotifyLogin;
         vm.venueSearch = venueSearch;
 
-        //properties
+        //Properties
         vm.error = null;
         vm.playlist = null;
         vm.setlists = null;
         vm.selectedArtist = '';
-        vm.selectedVenueId= '';
+        vm.selectedSetlistId = '';
+        vm.selectedVenueId = '';
 
+
+        //Function Implementations
 
         /**
          * Step 1: 
@@ -37,18 +41,25 @@
                     onResponse: function (spotifyResponse) {
                         var response = { results: [] };
 
-                        //iterate through results from Spotify
-                        $.each(spotifyResponse.artists.items, function (i, artist) {
-                            response.results.push({
-                                title: artist.name,
-                                image: (artist.images.length == 3) ? artist.images[0].url : '',
-                                id: artist.id
+                        if (spotifyResponse.artists.total > 0) {
+                            //iterate through results from Spotify
+                            $.each(spotifyResponse.artists.items, function (i, artist) {
+                                response.results.push({
+                                    title: artist.name,
+                                    image: (artist.images.length == 3) ? artist.images[0].url : '',
+                                    id: artist.id
+                                });
                             });
-                        });
+                        } else {
+                            response.results = [{
+                                title: 'Not Found',
+                                description: 'Try typing more characters'
+                            }];
+                        }
 
                         return response;
                     }
-                },
+                }, //end apiSettings
                 fields: { //map results from Spotify to Semantic-UI API
                     results: 'results',
                     title: 'title',
@@ -58,7 +69,7 @@
                 onSelect: function (result, response) {
                     vm.getArtistSetlists(result.title);
                 }
-            };
+            }; //end options
             return options;
         };
 
@@ -69,24 +80,17 @@
          * @param {string} artist
          */
         function getArtistSetlists(artist) {
-            setlistService.getSetlists(artist)
+            setlistService.getArtistSetlists(artist)
                 .then(function (response) {
-                    //jQuery for steps
-                    $('#stepOne').removeClass('active');
-                    $('#stepTwo').addClass('active').removeClass('disabled');
-                    if (artist != vm.selectedArtist) { //new artist chosen, disable step three
-                        $('#stepThree').addClass('disabled');
-                        vm.playlist = null; 
-                    }
-
                     vm.selectedArtist = artist;
-                    vm.setlists = response;
-                    return response;
+                    return getSetlistSuccess(response, vm.selectedArtist, artist);
                 })
                 .catch(function (e) {
-                    vm.error = true; //TODO
+                    vm.selectedArtist = artist;
+                    vm.error = true;
+                    return;
                 });
-        }; //end getSetlists
+        };
 
 
         /**
@@ -94,47 +98,83 @@
          * @param setlist
          */
         function getSetlistSongs(setlist) {
+            if (!setlist.sets) { //no songs were added yet, show link to edit on setlist.fm 
+                vm.selectedSetlistId = setlist.id;
+                getSetlistSongsCompleted();
+                return;
+            }
+
+            vm.selectedSetlistId = null; //don't show edit link
             var sets = {
                 sets: JSON.stringify(setlist.sets),
-                artist: vm.selectedArtist,
-                title: vm.selectedArtist + ' @ ' + setlist.venue,
+                artist: setlist.artist,
+                title: setlist.artist + ' @ ' + setlist.venue,
             };
 
             setlistService.postSetlistSongs(sets)
                 .then(function (response) {
                     vm.playlist = response;
-                    $('#stepTwo').removeClass('active');
-                    $('#stepThree').addClass('active').removeClass('disabled');
+                    getSetlistSongsCompleted();
                     return response;
                 })
                 .catch(function (err) {
-                    vm.error = true; //TODO
+                    vm.selectedSetlistId = setlist.id;
+                    getSetlistSongsCompleted();
+                    return;
                 });
         }; //end getSetlistSongs
 
         /**
-        * Step 2: Given a venue, display setlists
-        * @param {string} venue
-        */
-        function getVenueSetlists(venueIdvenue) {
+         * Called when getSetlistSongs completes
+         * sucessfully, with errors, or empty setlists
+         */
+        function getSetlistSongsCompleted() {
+            $('#stepTwo').removeClass('active');
+            $('#stepThree').addClass('active').removeClass('disabled');
+        };
+
+
+        /**
+         * Callback when getVenueSetlists or getArtistSetlists was 
+         * successfully called
+         * @param {Object} response - HTTP Response object
+         * @param {*} last - Previously selected artist or venue
+         * @param {*} selected - Currently selected artist or venue
+         */
+        function getSetlistSuccess(response, last, selected) {
+            //jQuery for steps
+            $('#stepOne').removeClass('active');
+            $('#stepTwo').addClass('active').removeClass('disabled');
+            if (last != selected) { //new artist chosen, disable step three
+                $('#stepThree').addClass('disabled');
+                vm.playlist = null;
+            }
+
+            if (response.status !== 404 || response.status !== 500) {
+                vm.setlists = response;
+                return response;
+            } else {
+                vm.error = true;
+            }
+        };
+
+
+        /**
+         * Step 2: Given a venue, display setlists
+         * @param {string} venue
+         */
+        function getVenueSetlists(venueId) {
             setlistService.getVenueSetlists(venueId)
                 .then(function (response) {
-                    //jQuery for steps
-                    $('#stepOne').removeClass('active');
-                    $('#stepTwo').addClass('active').removeClass('disabled');
-                    if (venue != vm.selectedVenueId) { //new venue chosen, disable step three
-                        $('#stepThree').addClass('disabled');
-                        vm.playlist = null; 
-                    }
-
                     vm.selectedVenueId = venueId;
-                    vm.setlists = response;
-                    return response;
+                    return getSetlistSuccess(response, vm.selectedVenueId, venueId);
                 })
                 .catch(function (e) {
-                    vm.error = true; //TODO
+                    vm.selectedVenueId = venueId;
+                    vm.error = true;
+                    return;
                 });
-        }; //end getSetlists
+        }; 
 
 
         /**
@@ -161,7 +201,8 @@
             } else {
                 preview.pause();
             }
-        }; //end playPreview
+            return;
+        }; 
 
 
         /**
@@ -171,6 +212,7 @@
             sessionStorage.playlist = JSON.stringify(vm.playlist); //save to sessionStorage
             $window.open('/recap/templates/spotifyLogin.html',
                 'Login to Spotify', 'width=700,height=500,left=100,top=100');
+            return;
         };
 
 
@@ -183,27 +225,30 @@
                     url: '/recap/getVenues/{query}',
                     onResponse: function (venueResponse) {
                         var response = { results: [] };
-
-                        $.each(venueResponse, function (i, venue) {
-                            response.results.push(venue);
-                        });
-
+                        if (venueResponse.success != null && venueResponse.success == false) {
+                            response.results = [venueResponse];
+                        } else {
+                            $.each(venueResponse, function (i, venue) {
+                                response.results.push(venue);
+                            });
+                        }
                         return response;
-                    },
-                    minCharacters: 3,
-                    fields: {
-                        results: 'results',
-                        title: 'title',
-                        description: 'description'
-                    },
-                    onSelect: function (result, response) {
-                        var venueId = result.id;
-                        vm.getVenueSetlists(venueId);
+                    }
+                }, //end apiSettings
+                fields: {
+                    results: 'results',
+                    title: 'title',
+                    description: 'description'
+                },
+                minCharacters: 3,
+                onSelect: function (result, response) {
+                    if(result.success != false){
+                        vm.getVenueSetlists(result.id);
                     }
                 }
-            };
+            }; //end options
             return options;
-        };
+        }; //end venueSearch
 
     }; //end SearchController
 

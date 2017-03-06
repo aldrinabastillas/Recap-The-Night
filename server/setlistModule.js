@@ -1,46 +1,49 @@
 ﻿(function () {
     'use strict';
-    /**
-     * Modules
-     */
+    //Modules
     var express = require('express');
+    var app = express();
     var request = require('request');
     var spotify = require('./spotifyPlaylistModule');
     var token = require('../../shared/server/spotifyQueryModule');
-    var app = express();
+    var parse = require('./setlistParseModule');
 
-    /** 
-     * Public Functions
-     */
-    exports.getSetlists = getSetlists;
+
+    //Public Functions
+    exports.getArtistSetlists = getArtistSetlists;
     exports.getSetlistSongs = getSetlistSongs;
     exports.getVenues = getVenues;
+    exports.getVenueSetlists = getVenueSetlists;
+
+
+    //Function Implementations
 
     /**
-     * Function Implementations
+     * See http://api.setlist.fm/docs/rest.0.1.search.artists.html
+     * @param {string} artist - free text
      */
-
-    /**
-     * 
-     * @param {string} query - 
-     */
-    function getVenues(query) {
+    function getArtistId(artist) {
         return new Promise(function (resolve, reject) {
-            var endpoint = 'http://api.setlist.fm/rest/0.1/search/venues.json?name=' + query
-            request.get(endpoint, function (error, response, body) {
+            var url = 'http://api.setlist.fm/rest/0.1/search/artists.json?artistName=' + artist;
+
+            request.get(url, function (error, response, body) {
                 if (!error && response.statusCode === 200) {
-                    body = JSON.parse(body);
-                    var venues = parseVenues(body.venues.venue);
-                    resolve(venues);
+                    var obj = JSON.parse(body);
+                    if (obj.artists.artist.length > 0) {
+                        resolve(obj.artists.artist[0]['@mbid']);
+                    }
+                    else if (obj.artists.artist) {
+                        resolve(obj.artists.artist['@mbid']);
+                    }
                 }
                 else {
-                    reject(query + ': ' + body);
+                    reject(artist + ': ' + body);
                 }
             });
         });
     };
 
-
+    
     /**
      * Given an artist name, search for their most recent setlists
      * @param {string} artist
@@ -57,7 +60,7 @@
                     request.get(url, function (error, response, body) {
                         if (!error && response.statusCode === 200) {
                             body = JSON.parse(body);
-                            var setlists = parseSetlists(body.setlists.setlist);
+                            var setlists = parse.parseSetlists(body.setlists.setlist);
                             resolve(setlists);
                         }
                         else {
@@ -72,43 +75,13 @@
     };
 
 
-     /**
-     * Given an artist name, search for their most recent setlists
-     * @param {string} artist
-     */
-    function getArtistSetlists(venueId) {
-        return new Promise(function (resolve, reject) {
-            //cache a Spotify Access token ahead of time for later queries
-            token.getAccessToken();
-
-//TODO:
-            // getArtistId(artist)
-            //     .then(function (artistId) {
-            //         //get list of setlists given an artistId
-            //         var url = 'http://api.setlist.fm/rest/0.1/artist/' + artistId + '/setlists.json';
-            //         request.get(url, function (error, response, body) {
-            //             if (!error && response.statusCode === 200) {
-            //                 body = JSON.parse(body);
-            //                 var setlists = parseSetlists(body.setlists.setlist);
-            //                 resolve(setlists);
-            //             }
-            //             else {
-            //                 reject(artist + ': ' + body);
-            //             }
-            //         });
-            //     })
-            //     .catch(function (reason) {
-            //         reject(reason);
-            //     });
-        });
-    };
     /**
      * Given set(s) of songs, get each songs' info from Spotify
      * @param sets - contains a set object, or an array of sets
      */
     function getSetlistSongs(sets) {
         return new Promise(function (resolve, reject) {
-            var songs = parseSets(sets.sets, sets.artist);
+            var songs = parse.parseSets(sets.sets, sets.artist);
 
             //call getSongInfo on all songs
             var tasks = songs.map(getSongInfo);
@@ -145,150 +118,56 @@
                     resolve(song);
                 });
         });
-    }
-
-
-    /**
-     * See http://api.setlist.fm/docs/rest.0.1.search.artists.html
-     * @param {string} artist - free text
-     */
-    function getArtistId(artist) {
-        return new Promise(function (resolve, reject) {
-            var url = 'http://api.setlist.fm/rest/0.1/search/artists.json?artistName=' + artist;
-
-            request.get(url, function (error, response, body) {
-                if (!error && response.statusCode === 200) {
-                    var obj = JSON.parse(body);
-                    if (obj.artists.artist.length > 0) {
-                        resolve(obj.artists.artist[0]['@mbid']);
-                    }
-                    else if (obj.artists.artist) {
-                        resolve(obj.artists.artist['@mbid']);
-                    }
-                }
-                else {
-                    reject(artist + ': ' + body);
-                }
-            });
-        });
-    }
-
-    /**
-     * Given a setlistId, return all the songs. Not currently used
-     * @param setlistId - A setlist id from setlist.fm
-     */
-    function getSongNames(setlistId) {
-        return new Promise(function (resolve, reject) {
-            var url = 'http://api.setlist.fm/rest/0.1/setlist/' + setlistId + '.json';
-
-            request.get(url, function (error, response, body) {
-                if (!error && response.statusCode === 200) {
-                    //loop through all songs in all sets
-                    var obj = JSON.parse(body);
-                    var songs = parseSets(obj.setlist.sets, obj.setlist.artist['@name']);
-                    resolve(songs);
-                }
-                else {
-                    reject('Setlist.fm returned an error.');
-                }
-            });
-        });
-    };
-
-    function parseVenues(venues) {
-        var venueArr = [];
-
-        if(venues.length > 0){
-            venues.forEach(function (venue) {
-                venueArr.push(parseVenue(venue));
-            });
-        } else{
-            venueArr.push(parseVenue(venues));
-        }
-
-        return venueArr;
-    };
-
-
-    function parseVenue(venue) {
-        var city = venue['city']['@name'];
-        var country = venue['city']['country']['@name']
-        var description = (country) ? city + ', ' + country : city;
-        return {
-            id: venue['@id'],
-            title: venue['@name'],
-            description: description
-        };
     };
 
 
     /**
      * 
-     * @param setlists
+     * @param {string} query - 
      */
-    function parseSetlists(setlists) {
-        var setlistArr = [];
-        setlists.forEach(function (item) {
-            setlistArr.push({
-                date: parseDate(item['@eventDate']),
-                venue: item['venue']['@name'] + ', ' + item['venue']['city']['@name'],
-                id: item['@id'],
-                sets: item['sets']
+    function getVenues(query) {
+        return new Promise(function (resolve, reject) {
+            var endpoint = 'http://api.setlist.fm/rest/0.1/search/venues.json?name=' + query
+            request.get(endpoint, function (error, response, body) {
+                if (!error && response.statusCode === 200) {
+                    body = JSON.parse(body);
+                    var venues = parse.parseVenues(body.venues.venue);
+                    resolve(venues);
+                }
+                else {
+                    var failure = {
+                        success: false,
+                        title: 'Not Found',
+                        description: 'Try typing more characters'
+                    };
+
+                    resolve(failure);
+                }
             });
         });
-        return setlistArr;
     };
 
 
-    /**
-     * Parse dates from Setlist.fm into JS format: year, month (0-11), date
-     * @param {string} dateString - Dates from setlist.fm are 'DD-MM-YYY'
+     /**
+     * Given a venueId, search for their most recent setlists
+     * @param {string} venueId
      */
-    function parseDate(dateString) {
-        var split = dateString.split('-');
-        return new Date(split[2], split[1] - 1, split[0]);
-    }; //end parseDate
+    function getVenueSetlists(venueId) {
+        return new Promise(function (resolve, reject) {
+            //cache a Spotify Access token ahead of time for later queries
+            token.getAccessToken();
 
-
-    /**
-     * Given a sets object, which may have one set object, or an array of sets
-     * return a single array of songs
-     * @param sets
-     * @param {string} artist
-     */
-    function parseSets(sets, artist, res, req) {
-        var sets = JSON.parse(sets);
-        var songs = [];
-        if (sets.set.length > 0) { //if there is an array of multiple sets
-            sets.forEach(function (set) {
-                songs = songs.concat(parseSingleSet(set, artist));
+            var url = 'http://api.setlist.fm/rest/0.1/search/setlists.json?venueId=' + venueId;
+            request.get(url, function(error, response, body){
+                if(!error && response.statusCode === 200){
+                    body = JSON.parse(body);
+                    var setlists = parse.parseSetlists(body.setlists.setlist);
+                    resolve(setlists);
+                } else{
+                    reject(venueId + ': ' + body);
+                }
             });
-        }
-        else if (sets.set.song.length > 0) { //only one set object, check if there are songs
-            songs = parseSingleSet(sets.set, artist);
-        }
-        return songs;
-    };
-
-    /**
-     * Given a set of songs, return an array of objects that just has
-     * the song name and artist. If the song is not a cover, use the
-     * provided artist
-     * @param set -
-     * @param {string} artist
-     */
-    function parseSingleSet(set, artist, res, req) {
-        var songs = [];
-        if (set.song.length > 0) {
-            set.song.forEach(function (song) {
-                var songArtist = (song.cover && song.cover['@name']) ? song.cover['@name'] : artist;
-                songs.push({
-                    name: song['@name'],
-                    artist: songArtist,
-                });
-            });
-        }
-        return songs;
-    };
+        });
+    }; //get getVenueSetlists
 
 })();

@@ -1,0 +1,28 @@
+<div class="col-md-6 col-lg-6 col-md-offset-3 col-lg-offset-3">
+
+    <!-- Step 2a: Display and Select a Show -->
+    <div ng-hide="sc.playlist||sc.selectedSetlistId" ng-show="sc.selectedArtist" id="showList" class="ui animated list">
+        <div class="item" ng-repeat="setlist in sc.setlists" ng-click="sc.getSetlistSongs(setlist)">
+            <div class="content">
+                <div ng-show="sc.selectedArtist" class="header">{{setlist.venue}}</div>
+                <div ng-show="sc.selectedVenueId" class="header">{{setlist.artist}}</div>
+                <div class="description">{{setlist.date | date : 'mediumDate'}}</div>
+            </div>
+        </div>
+
+        <!-- Step 2b: No Shows Foumd -->
+        <div ng-show="sc.error" class="ui error message">
+            <div class="header">
+                No setlists found in
+                <a target="_window" href="http://www.setlist.fm/">setlist.fm</a>
+                <div ng-show="sc.selectedArtist">
+                    for {{sc.selectedArtist}}
+                </div>
+                <div ng-show="sc.selectedVenueId">
+                    at {{sc.selectedVenueId}}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>

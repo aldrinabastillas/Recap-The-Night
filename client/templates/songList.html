@@ -1,0 +1,41 @@
+<div class="col-md-6 col-lg-6 col-md-offset-3 col-lg-offset-3">
+    <!-- Step 3a: Display and Save Songs -->
+    <div id="songList" ng-show="sc.playlist||sc.selectedSetlistId">
+        <div ng-show="sc.playlist">
+            <div class="btn btn-success" target="popup" ng-click="sc.spotifyLogin()">
+                Log in and save
+            </div>
+            <div class="ui animated list">
+                <div class="item" ng-repeat="song in sc.playlist.songs">
+                    <i ng-hide="song.image" class="ui circular inverted teal music icon"></i>
+                    <img ng-show="song.image" class="ui avatar image" src="{{song.image}}">
+                    <div class="content">
+                        <div ng-hide="song.id">
+                            {{song.name}}
+                        </div>
+                        <div ng-show="song.id" ng-click="sc.playPreview(song.id)" class="header" title="Listen to Preview">
+                            {{song.name}}
+                        </div>
+                        <div class="description" ng-show="song.artist&&song.album">
+                            by {{song.artist}} on {{song.album}}
+                        </div>
+                        <div>
+                            <audio id="{{song.id}}" src="{{song.preview}}"></audio>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3b: No Songs Added -->
+        <div ng-show="sc.selectedSetlistId" class="ui error message">
+            <div class="header">
+                No songs added on setlist.fm yet. Contribute to the Wiki and be the first to
+                <a target="_window" href="http://www.setlist.fm/edit?setlist={{sc.selectedSetlistId}}&step=song">
+                        add songs!
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>

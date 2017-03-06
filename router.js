@@ -48,7 +48,7 @@
                     res.json(setlists);
                 })
                 .catch(function (reason) {
-                    res.status(500).json(reason);
+                    res.status(404).json(reason);
                 });
         } else {
             res.status(500).json('artist was not provided');
@@ -64,7 +64,9 @@
                     res.json(venues);
                 })
                 .catch(function(reason){
-                    res.status(500).json(reason);
+                    //don't send 500 status 
+                    //handle manually in http://semantic-ui.com/behaviors/api.html#/usage
+                    res.json(reason);
                 });
         } else{
             res.status(500).json('query was not provided');
@@ -79,8 +81,8 @@
                 .then(function (setlists) {
                     res.json(setlists);
                 })
-                .catch(function (reason) {
-                    res.status(500).json(reason);
+                .catch(function (reason) {  
+                    res.json(reason); 
                 });
         } else {
             res.status(500).json('venueId was not provided');

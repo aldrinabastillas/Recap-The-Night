@@ -6,9 +6,14 @@
 <link href="/vendor/semantic-ui/dist/semantic.min.css" rel="stylesheet" type="text/css" />
 <link href="/recap/css/index.css" rel="stylesheet" type="text/css">
 
-<subpage-nav-bar></subpage-nav-bar>
 <div ng-app="recapApp" ng-controller="SearchController as sc" class="recapApp container-fluid">
     <div class="row">
-        <artist-search></artist-search>
+        <subpage-nav-bar></subpage-nav-bar>
+    </div>
+    <div class="row">
+        <steps></steps>
+        <playlist-search></playlist-search>
+        <show-select></show-select>
+        <song-list></song-list>
     </div>
 </div>

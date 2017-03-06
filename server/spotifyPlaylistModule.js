@@ -1,8 +1,6 @@
 ﻿(function () {
     'use strict';
-    /**
-     * Modules
-     */
+    // Modules
     var express = require('express');
     var app = express();
     var keys = require('./privateKeys');
@@ -12,26 +10,23 @@
     var cookieParser = require('cookie-parser');
     app.use(cookieParser());
 
-
-    /**
-     * Private Properties
-     */
+    // Private Properties
     var stateKey = 'spotify_auth_state';
     var client_id = keys.spotify_client_id; // Your client id
     var redirect_uri = keys.spotify_redirect_uri; // Your redirect uri
     var client_secret = keys.spotify_client_secret; // Your secret
 
-
-    /**
-     * Public Functions
-     */
+    //Public Functions
+    exports.getSong = getSong;
+    exports.savePlaylist = savePlaylist;
+    exports.spotifyLogin = spotifyLogin;
 
     /**
      * Explicit OAuth
      * See https://developer.spotify.com/web-api/authorization-guide/#authorization-code-flow
      * @param res - HTTP Request object
      */
-    exports.spotifyLogin = function (res) {
+    function spotifyLogin(res) {
         var state = generateRandomString(16);
         res.cookie(stateKey, state);
 
@@ -51,9 +46,10 @@
 
     /**
      * Called from getSongInfo() in setlistModule.js
-     * @param song {string} - Song title
+     * @param {string} song - Song title
+     * * @param {string} artist - Artist name
      */
-    exports.getSong = function (song, artist) {
+    function getSong(song, artist) {
         return new Promise(function (resolve, reject) {
             var endpoint = 'https://api.spotify.com/v1/search'
             var params = '?q=track:' + song + ' artist:' + artist + '&type=track';
@@ -84,7 +80,7 @@
     /**
      * TODO: http://solutionoptimist.com/2013/12/27/javascript-promise-chains-2/
      */
-    exports.savePlaylist = function (req, res, code, playlist) {
+    function savePlaylist(req, res, code, playlist) {
         return new Promise(function (resolve, reject) {
             //1: Exchange User Code for Access Token
             getTokenWithCode(req, res, code).then(function (accessToken) {
@@ -113,9 +109,7 @@
     }; //end savePlaylist
 
 
-    /**
-     * Private Functions 
-     */
+    //Private Functions 
 
     /*
      *
@@ -127,7 +121,9 @@
             }
 
             songs.forEach(function (song) {
-                body.uris.push(song.uri);
+                if(song.uri){
+                    body.uris.push(song.uri);
+                }
             });
 
             var endpoint = 'https://api.spotify.com/v1/users/' + userId + '/playlists/' + playlistId + '/tracks';

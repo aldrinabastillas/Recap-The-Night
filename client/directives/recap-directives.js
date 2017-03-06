@@ -1,12 +1,39 @@
 ﻿(function () {
     angular
         .module('recapApp')
-        .directive('artistSearch', ArtistSearch);
+        .directive('showSelect', ShowSelect)
+        .directive('songList', SongList)
+        .directive('steps', Steps)
+        .directive('playlistSearch', PlaylistSearch)
 
-    function ArtistSearch() {
+    function ShowSelect() {
         var directive = {
             restrict: 'E',
-            templateUrl: '/recap/templates/artistSearch.html',
+            templateUrl: '/recap/templates/showSelect.html'
+        };
+        return directive;
+    };
+
+    function SongList() {
+        var directive = {
+            restrict: 'E',
+            templateUrl: '/recap/templates/songList.html'
+        };
+        return directive;
+    };
+
+    function Steps() {
+        var directive = {
+            restrict: 'E',
+            templateUrl: '/recap/templates/steps.html'
+        };
+        return directive;
+    };
+
+    function PlaylistSearch() {
+        var directive = {
+            restrict: 'E',
+            templateUrl: '/recap/templates/playlistSearch.html',
             controller: 'SearchController',
             controllerAs: 'sc',
             bindToController: true,
@@ -34,7 +61,6 @@
                 var search = scope.sc.artistSearch();
                 var alt = scope.sc.participate()
                     .then(function (alt) {
-                        console.log('alt: ' + alt);
                         if (alt == 'venue') {
                             $('#stepOneTitle').html('Venue');
                             $('#stepOneIcon').removeClass('users').addClass('building');
