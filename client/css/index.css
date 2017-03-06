@@ -18,16 +18,9 @@ a, a:hover{
     color: #42DCA3;
 }
 
-i.inverted.circular.teal.icon,
-.btn-success{
+i.inverted.circular.teal.icon{
     background-color: #33ad80!important; /*marked as important in semantic-ui's css*/
 }
-
-.ui.error.message .header a{
-    color: #912D2B;
-    text-decoration: underline;
-    cursor: pointer;
-} 
 /*#endregion*/
 
 
@@ -131,3 +124,42 @@ i.inverted.circular.teal.icon,
     color: #33ad80;
 }
 /*#endregion */
+
+
+/*#region Messages*/
+.ui.error.message .header a{
+    color: #912D2B;
+    text-decoration: underline;
+    cursor: pointer;
+} 
+
+.ui.positive.message{
+    background-color: #33ad80;
+    box-shadow: 0 0 0 1px #33AD80 inset, 0 0 0 0 transparent
+}
+
+    .ui.positive.message .header {
+        color: black;
+    }
+
+    .ui.positive.message p{
+        font-size: 15px;
+        color: #303030;
+    }
+
+    .ui.positive.message a{
+        color: #303030;
+        text-decoration: underline
+    }
+
+    .ui.positive.message a:hover{
+        cursor: pointer
+    }
+/*#endregion*/
+
+/*region Buttons*/
+.btn-success{
+    background-color: #33ad80; 
+    color: black;
+}
+/*#endregion*/

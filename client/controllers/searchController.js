@@ -97,8 +97,8 @@
          * Step 3: Given a setlist, get the songs info from Spotify
          * @param setlist
          */
-        function getSetlistSongs(setlist) {
-            sixpackService.convert(); //test complete if user tried to view songs
+        function getSetlistSongs(setlist) {            
+            //sixpackService.convert(); //test complete if user tried to view songs
 
             if (!setlist.sets) { //no songs were added yet, show link to edit on setlist.fm 
                 vm.selectedSetlistId = setlist.id;
@@ -113,6 +113,7 @@
                 title: setlist.artist + ' @ ' + setlist.venue,
             };
 
+            $('body, .header').css('cursor', 'wait'); //change pointer to loading
             setlistService.postSetlistSongs(sets)
                 .then(function (response) {
                     vm.playlist = response;
@@ -133,6 +134,7 @@
         function getSetlistSongsCompleted() {
             $('#stepTwo').removeClass('active');
             $('#stepThree').addClass('active').removeClass('disabled');
+            $('body, .header').css('cursor', 'auto'); //reset mouse pointer
         };
 
 
@@ -176,11 +178,12 @@
                     vm.error = true;
                     return;
                 });
-        }; 
+        };
 
 
         /**
-         * 
+         * Called by link function upon page load 
+         * of playlist-search direcive
          */
         function participate() {
             return new Promise(function (resolve, reject) {
@@ -204,7 +207,7 @@
                 preview.pause();
             }
             return;
-        }; 
+        };
 
 
         /**
@@ -244,7 +247,7 @@
                 },
                 minCharacters: 3,
                 onSelect: function (result, response) {
-                    if(result.success != false){
+                    if (result.success != false) {
                         vm.getVenueSetlists(result.id);
                     }
                 }

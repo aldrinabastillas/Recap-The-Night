@@ -59,15 +59,15 @@
 
                 //Get an experiment alterntative and change UI appropriately
                 var search = scope.sc.artistSearch();
-                var alt = scope.sc.participate()
-                    .then(function (alt) {
-                        if (alt == 'venue') {
-                            $('#stepOneTitle').html('Venue');
-                            $('#stepOneIcon').removeClass('users').addClass('building');
-                            search = scope.sc.venueSearch();
-                            $('#searchPrompt').search(search);
-                        }
-                    });
+                // var alt = scope.sc.participate()
+                //     .then(function (alt) {
+                //         if (alt == 'venue') {
+                //             $('#stepOneTitle').html('Venue');
+                //             $('#stepOneIcon').removeClass('users').addClass('building');
+                //             search = scope.sc.venueSearch();
+                //             $('#searchPrompt').search(search);
+                //         }
+                //     });
 
                 // Free-text search for either an artist or venue
                 $('#searchPrompt').search(search);
