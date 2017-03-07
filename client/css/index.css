@@ -29,23 +29,28 @@ i.inverted.circular.teal.icon{
     min-width: 100%;
 }
 
-.ui.input input:focus, .ui.input.focus input{
-    border-color: #42DCA3;
+.ui.icon.input > i.icon{  
+    color: #42DCA3;
 }
+
 .ui.input input::-webkit-input-placeholder{  
     color: #42DCA3;
 }
+
 .ui.input input::-moz-placeholder{  
     color: #42DCA3;
 }
+
 .ui.input input:-ms-input-placeholder{  
     color: #42DCA3;
 }
+
 .ui.input input:-moz-placeholder {  
     color: #42DCA3;
 }
-.ui.icon.input > i.icon{  
-    color: #42DCA3;
+
+.ui.input input:focus, .ui.input.focus input{
+    border-color: #42DCA3;
 }
 /*#endregion*/
 
@@ -99,14 +104,9 @@ i.inverted.circular.teal.icon{
     background: #3a3a3a;
 }
 
-.ui.steps .disabled.step,
-.ui.steps .disabled.step:after{
-    background: #565656;
-}
-
-.ui.steps .step.active,
-.ui.steps .step.active:after{
-    background: #272727;
+.ui.steps .step.active .title,
+.ui.steps .step.active .icon{
+    color: #33ad80;
 }
 
 .ui.steps a.step:hover,
@@ -119,9 +119,14 @@ i.inverted.circular.teal.icon{
     color: #42DCA3;
 }
 
-.ui.steps .step.active .title,
-.ui.steps .step.active .icon{
-    color: #33ad80;
+.ui.steps .disabled.step,
+.ui.steps .disabled.step:after{
+    background: #565656;
+}
+
+.ui.steps .step.active,
+.ui.steps .step.active:after{
+    background: #272727;
 }
 /*#endregion */
 

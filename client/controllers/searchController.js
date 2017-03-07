@@ -37,18 +37,13 @@
         function artistSearch() {
             var options = {
                 apiSettings: {
-                    url: 'http://api.spotify.com/v1/search?q={query}&type=artist',
+                    url: '/recap/getArtists/{query}',
                     onResponse: function (spotifyResponse) {
                         var response = { results: [] };
 
-                        if (spotifyResponse.artists.total > 0) {
-                            //iterate through results from Spotify
-                            $.each(spotifyResponse.artists.items, function (i, artist) {
-                                response.results.push({
-                                    title: artist.name,
-                                    image: (artist.images.length == 3) ? artist.images[0].url : '',
-                                    id: artist.id
-                                });
+                        if (spotifyResponse.success) {
+                            $.each(spotifyResponse.artists, function (i, artist) {
+                                response.results.push(artist);
                             });
                         } else {
                             response.results = [{
@@ -56,7 +51,6 @@
                                 description: 'Try typing more characters'
                             }];
                         }
-
                         return response;
                     }
                 }, //end apiSettings
@@ -67,11 +61,53 @@
                 },
                 minCharacters: 3,
                 onSelect: function (result, response) {
-                    vm.getArtistSetlists(result.title);
+                    if (result.success != false) {
+                        vm.getArtistSetlists(result.title);
+                    }
                 }
             }; //end options
             return options;
         };
+
+
+        //function artistSearch() {
+        //    var options = {
+        //        apiSettings: {
+        //            url: 'http://api.spotify.com/v1/search?q={query}&type=artist',
+        //            onResponse: function (spotifyResponse) {
+        //                var response = { results: [] };
+
+        //                if (spotifyResponse.artists.total > 0) {
+        //                    //iterate through results from Spotify
+        //                    $.each(spotifyResponse.artists.items, function (i, artist) {
+        //                        response.results.push({
+        //                            title: artist.name,
+        //                            image: (artist.images.length == 3) ? artist.images[0].url : '',
+        //                            id: artist.id
+        //                        });
+        //                    });
+        //                } else {
+        //                    response.results = [{
+        //                        title: 'Not Found',
+        //                        description: 'Try typing more characters'
+        //                    }];
+        //                }
+
+        //                return response;
+        //            }
+        //        }, //end apiSettings
+        //        fields: { //map results from Spotify to Semantic-UI API
+        //            results: 'results',
+        //            title: 'title',
+        //            image: 'image'
+        //        },
+        //        minCharacters: 3,
+        //        onSelect: function (result, response) {
+        //            vm.getArtistSetlists(result.title);
+        //        }
+        //    }; //end options
+        //    return options;
+        //};
 
 
         /**
@@ -97,7 +133,7 @@
          * Step 3: Given a setlist, get the songs info from Spotify
          * @param setlist
          */
-        function getSetlistSongs(setlist) {            
+        function getSetlistSongs(setlist) {
             //sixpackService.convert(); //test complete if user tried to view songs
 
             if (!setlist.sets) { //no songs were added yet, show link to edit on setlist.fm 
@@ -222,7 +258,7 @@
 
 
         /**
-         * 
+         * See Semantic-UI Search API
          */
         function venueSearch() {
             var options = {

@@ -1,16 +1,18 @@
 ﻿(function () {
     'use strict';
+
     //Modules
     var express = require('express');
     var app = express();
     var request = require('request');
-    var spotify = require('./spotifyPlaylistModule');
+    var spotify = require('./spotifyModule');
     var token = require('../../shared/server/spotifyQueryModule');
     var parse = require('./setlistParseModule');
     var querystring = require('querystring');
 
 
     //Public Functions
+    exports.getArtists = getArtists;
     exports.getArtistSetlists = getArtistSetlists;
     exports.getSetlistSongs = getSetlistSongs;
     exports.getVenues = getVenues;
@@ -18,6 +20,30 @@
 
 
     //Function Implementations
+
+
+    /**
+     * See http://api.setlist.fm/docs/rest.0.1.search.artists.html
+     * @param {string} artist - free text
+     */
+    function getArtists(query) {
+        return new Promise(function (resolve, reject) {
+            var param = query.replace(new RegExp(' ', 'g'), '+'); //replace spaces
+            var url = 'http://api.spotify.com/v1/search?q=' + param + '&type=artist' ;
+
+            request.get(url, function (error, response, body) {
+                if (!error && response.statusCode === 200) {
+                    body = JSON.parse(body);
+                    var artists = parse.parseArtists(body.artists);
+                    resolve(artists);
+                }
+                else {
+                    reject(artist + ': ' + body);
+                }
+            });
+        });
+    };
+
 
     /**
      * See http://api.setlist.fm/docs/rest.0.1.search.artists.html
@@ -30,20 +56,9 @@
 
             request.get(url, function (error, response, body) {
                 if (!error && response.statusCode === 200) {
-                    var obj = JSON.parse(body);
-                    //could be multiple results, due to collaborations
-                    if (obj.artists.artist.length > 0) {
-                        obj.artists.artist.forEach(function(item){
-                            //found exact name match
-                            if(artist.toLowerCase() == item['@name'].toLowerCase()){
-                                resolve(item['@mbid']);
-                            }
-                        });
-                        resolve(obj.artists.artist[0]['@mbid']); //default first result
-                    }
-                    else if (obj.artists.artist) { //only one match found
-                        resolve(obj.artists.artist['@mbid']);
-                    }
+                    body = JSON.parse(body);
+                    var artistId = parse.parseArtistId(body.artists.artist);
+                    resolve(artistId);
                 }
                 else {
                     reject(artist + ': ' + body);

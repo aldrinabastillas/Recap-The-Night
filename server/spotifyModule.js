@@ -1,32 +1,38 @@
 ﻿(function () {
     'use strict';
+
     // Modules
     var express = require('express');
     var app = express();
-    var keys = require('./privateKeys');
+    var keys = require('./privateKeys'); //not in repo
     var request = require('request');
     var querystring = require('querystring');
     var spotify = require('../../shared/server/spotifyQueryModule.js');
     var cookieParser = require('cookie-parser');
     app.use(cookieParser());
 
+
     // Private Properties
     var stateKey = 'spotify_auth_state';
-    var client_id = keys.spotify_client_id; // Your client id
-    var redirect_uri = keys.spotify_redirect_uri; // Your redirect uri
-    var client_secret = keys.spotify_client_secret; // Your secret
+    var client_id = keys.spotify_client_id; 
+    var redirect_uri = keys.spotify_redirect_uri; 
+    var client_secret = keys.spotify_client_secret; 
+
 
     //Public Functions
     exports.getSong = getSong;
     exports.savePlaylist = savePlaylist;
     exports.spotifyLogin = spotifyLogin;
 
+
+    //Function Implementations
+
     /**
      * Explicit OAuth
      * See https://developer.spotify.com/web-api/authorization-guide/#authorization-code-flow
      * @param res - HTTP Request object
      */
-    function spotifyLogin(res) {
+    function spotifyLogin(req, res) {
         var state = generateRandomString(16);
         res.cookie(stateKey, state);
 
@@ -78,7 +84,7 @@
 
 
     /**
-     * TODO: http://solutionoptimist.com/2013/12/27/javascript-promise-chains-2/
+     * TODO: Flatten !! http://solutionoptimist.com/2013/12/27/javascript-promise-chains-2/
      */
     function savePlaylist(req, res, code, playlist) {
         return new Promise(function (resolve, reject) {
@@ -188,7 +194,7 @@
             if (req.cookies && req.cookies.token && Date.now() < req.cookies.login_expire) {
                 resolve(req.cookies.login_token);
             } else { //no token or expired
-                var authOptions = getAuthOptions(req.cookies, code);
+                var authOptions = getAuthOptions(req, code);
 
                 request.post(authOptions, function (error, response, body) {
                     if (!error && response.statusCode === 200) {
@@ -212,9 +218,11 @@
     /**
      * Format POST request depending on if we have a valid token
      * Called by getTokenWithCode
-     * @param cookies - Array of cookies
      */
-    function getAuthOptions(cookies, code) {
+    function getAuthOptions(req, code) {
+        var cookies = req.cookies;
+        //var host = req.get('host');
+        //var redirect = 'http://' + host + redirect_uri;
         var authOptions = {
             url: 'https://accounts.spotify.com/api/token',
             headers: {
@@ -239,6 +247,7 @@
 
 
     /**
+     * From https://github.com/spotify/web-api-auth-examples
      * Generates a random string containing numbers and letters
      * @param  {number} length The length of the string
      * @return {string} The generated string
@@ -252,4 +261,5 @@
         }
         return text;
     }; //end generateRandomString
+
 })();

@@ -1,10 +1,62 @@
 (function () {
+    'use strict';
+
     //Public Functions
+    exports.parseArtists = parseArtists;
+    exports.parseArtistId = parseArtistId;
     exports.parseSetlists = parseSetlists;
     exports.parseSets = parseSets;
     exports.parseVenues = parseVenues;
 
+
     //Function Implementations
+
+    /**
+     * Called by setlistModule.getArtists()
+     * @param artists
+     */
+    function parseArtists(artists) {
+        var response = {
+            success: true,
+            artists: []
+        };
+
+        if (artists.items.length > 0) {
+            artists.items.forEach(function (artist) {
+                response.artists.push({
+                    title: artist.name,
+                    image: (artist.images.length == 3) ? artist.images[0].url : '',
+                    id: artist.id
+                });
+            });
+        } else {
+            response.success = false;
+        }
+
+        return response;
+    };
+
+
+    /**
+     * 
+     * @param {Array} artistIds - array of artist Id objects
+     * @param {string} artist - free text search string
+     */
+    function parseArtistId(artistIds, artist) {
+        //could be multiple results, due to collaborations
+        if (artistIds.length > 0) {
+            artistIds.forEach(function (item) {
+                if (artist.toLowerCase() == item['@name'].toLowerCase()) {
+                    return (item['@mbid']); //found exact name match
+                }
+            });
+            return (artistIds[0]['@mbid']); //default first result
+        }
+        else { //only one match found
+            return (artistIds['@mbid']);
+        }
+    }
+
 
     /**
      * Parse dates from Setlist.fm into JS format: year, month (0-11), date
@@ -13,7 +65,7 @@
     function parseDate(dateString) {
         var split = dateString.split('-');
         return new Date(split[2], split[1] - 1, split[0]);
-    }; 
+    };
 
 
     /**
@@ -44,10 +96,10 @@
      */
     function parseSets(sets, artist) {
         var songs = [];
-        if(!sets){
+        if (!sets) {
             return songs;
         }
-        
+
         var sets = JSON.parse(sets);
         var songs = [];
         if (sets.set.length > 0) { //if there is an array of multiple sets

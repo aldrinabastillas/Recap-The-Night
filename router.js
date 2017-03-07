@@ -11,12 +11,12 @@
     var NodeCache = require("node-cache");
     var cache = new NodeCache();
     var setlist = require('./server/setlistModule');
-    var spotify = require('./server/spotifyPlaylistModule');
-
+    var spotify = require('./server/spotifyModule'); //used to be spotifyPlaylistModule
 
     // Routes
     var router = express.Router();
     router.use('/', express.static(__dirname + '/client/'));
+    router.get('/getArtists/:query', getArtists);
     router.get('/getConvert/:clientId', getConvert);
     router.get('/getArtistSetlists/:artist', getArtistSetlists);
     router.get('/getVenueSetlists/:venueId', getVenueSetlists);
@@ -54,6 +54,30 @@
         });
     };
 
+
+    /**
+     * 
+     * @param {*} req 
+     * @param {*} res 
+     */
+    function getArtists(req, res) {
+        var artist = req.params.query;
+        if (artist) {
+            setlist.getArtists(artist)
+                .then(function (artists) {
+                    res.json(artists);
+                })
+                .catch(function (reason) {
+                    //don't send 500 status 
+                    //handle manually in http://semantic-ui.com/behaviors/api.html#/usage
+                    res.json(reason);
+                });
+        } else {
+            res.status(500).json('query was not provided');
+        }
+    };
+
+
     /**
      * 
      * @param {*} req - HTTP Request
@@ -80,6 +104,31 @@
      * @param {*} req 
      * @param {*} res 
      */
+    function getParticipate(req, res) {
+        var endpoint = 'http://localhost:5000/participate?' +
+            querystring.stringify({
+                experiment: 'recap-search',
+                alternatives: ['artist', 'venue'],
+                //force: 'venue', //for testing!
+                client_id: req.params.clientId
+            });
+
+        request.get(endpoint, function (error, response, body) {
+            if (!error && response.statusCode === 200) {
+                res.json(body);
+            }
+            else {
+                res.status(500).json('participate failed');
+            }
+        });
+    };
+
+
+    /**
+     * 
+     * @param {*} req 
+     * @param {*} res 
+     */
     function getVenues(req, res) {
         var query = req.params.query;
         if (query) {
@@ -96,6 +145,7 @@
             res.status(500).json('query was not provided');
         }
     };
+
 
     /**
      * 
@@ -115,30 +165,6 @@
         } else {
             res.status(500).json('venueId was not provided');
         }
-    };
-
-    /**
-     * 
-     * @param {*} req 
-     * @param {*} res 
-     */
-    function getParticipate(req, res) {
-        var endpoint = 'http://localhost:5000/participate?' +
-            querystring.stringify({
-                experiment: 'recap-search',
-                alternatives: ['artist', 'venue'],
-                //force: 'venue', //for testing!
-                client_id: req.params.clientId
-            });
-
-        request.get(endpoint, function (error, response, body) {
-            if (!error && response.statusCode === 200) {
-                res.json(body);
-            }
-            else {
-                res.status(500).json('participate failed');
-            }
-        });
     };
 
 
@@ -207,7 +233,7 @@
      * Redirects to the Spotify authentication page
      */
     function spotifyLogin(req, res) {
-        spotify.spotifyLogin(res);
+        spotify.spotifyLogin(req, res);
     };
 
 })();
