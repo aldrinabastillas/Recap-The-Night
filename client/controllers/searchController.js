@@ -70,46 +70,6 @@
         };
 
 
-        //function artistSearch() {
-        //    var options = {
-        //        apiSettings: {
-        //            url: 'http://api.spotify.com/v1/search?q={query}&type=artist',
-        //            onResponse: function (spotifyResponse) {
-        //                var response = { results: [] };
-
-        //                if (spotifyResponse.artists.total > 0) {
-        //                    //iterate through results from Spotify
-        //                    $.each(spotifyResponse.artists.items, function (i, artist) {
-        //                        response.results.push({
-        //                            title: artist.name,
-        //                            image: (artist.images.length == 3) ? artist.images[0].url : '',
-        //                            id: artist.id
-        //                        });
-        //                    });
-        //                } else {
-        //                    response.results = [{
-        //                        title: 'Not Found',
-        //                        description: 'Try typing more characters'
-        //                    }];
-        //                }
-
-        //                return response;
-        //            }
-        //        }, //end apiSettings
-        //        fields: { //map results from Spotify to Semantic-UI API
-        //            results: 'results',
-        //            title: 'title',
-        //            image: 'image'
-        //        },
-        //        minCharacters: 3,
-        //        onSelect: function (result, response) {
-        //            vm.getArtistSetlists(result.title);
-        //        }
-        //    }; //end options
-        //    return options;
-        //};
-
-
         /**
          * Step 2: Given an artist, display setlists
          * Called by link function in recap-directives.js
@@ -134,8 +94,6 @@
          * @param setlist
          */
         function getSetlistSongs(setlist) {
-            //sixpackService.convert(); //test complete if user tried to view songs
-
             if (!setlist.sets) { //no songs were added yet, show link to edit on setlist.fm 
                 vm.selectedSetlistId = setlist.id;
                 getSetlistSongsCompleted();
@@ -250,6 +208,7 @@
          * Opens a new window to do Spotify authentication
          */
         function spotifyLogin() {
+            //sixpackService.convert(); //test complete if user tries to login and save a playlist
             sessionStorage.playlist = JSON.stringify(vm.playlist); //save to sessionStorage
             $window.open('/recap/templates/spotifyLogin.html',
                 'Login to Spotify', 'width=700,height=500,left=100,top=100');

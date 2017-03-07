@@ -14,9 +14,9 @@
 
     // Private Properties
     var stateKey = 'spotify_auth_state';
-    var client_id = keys.spotify_client_id; 
-    var redirect_uri = keys.spotify_redirect_uri; 
-    var client_secret = keys.spotify_client_secret; 
+    var client_id = keys.spotify_client_id;
+    var redirect_uri = keys.spotify_redirect_uri;
+    var client_secret = keys.spotify_client_secret;
 
 
     //Public Functions
@@ -28,9 +28,11 @@
     //Function Implementations
 
     /**
-     * Explicit OAuth
+     * @summary Explicit OAuth redirect.
      * See https://developer.spotify.com/web-api/authorization-guide/#authorization-code-flow
-     * @param res - HTTP Request object
+     * Called by router.spotifyLogin()
+     * @param {Object} req - HTTP Request object
+     * @param {Object} res - HTTP Response object
      */
     function spotifyLogin(req, res) {
         var state = generateRandomString(16);
@@ -47,13 +49,14 @@
                 state: state
             })
         );
-    }; //end spotifyLogin
+    };
 
 
     /**
+     * @summary Given a song and artist name, find their details in Spotify.
      * Called from getSongInfo() in setlistModule.js
      * @param {string} song - Song title
-     * * @param {string} artist - Artist name
+     * @param {string} artist - Artist name
      */
     function getSong(song, artist) {
         return new Promise(function (resolve, reject) {
@@ -80,11 +83,19 @@
             });
 
         });
-    }; //end getSong
+    };
 
 
     /**
      * TODO: Flatten !! http://solutionoptimist.com/2013/12/27/javascript-promise-chains-2/
+     * @summary Given songs and authorization code, get an accesstoken, the user's ID,
+     * create a playlist, and add songs to the playlist.
+     * Called by router.savePlaylist()
+     * @param {Object} req - HTTP Request object
+     * @param {Object} res - HTTP Response object
+     * @param {string} code - User authorization code
+     * @param {Object} playlist - List of songs to save
+     * @returns {string} - A url for the created Spotify playlist
      */
     function savePlaylist(req, res, code, playlist) {
         return new Promise(function (resolve, reject) {
@@ -117,8 +128,12 @@
 
     //Private Functions 
 
-    /*
-     *
+    /**
+     * @summary Add a list of songs to a Spotify playlist
+     * @param {string} userId - Spotify user ID
+     * @param {string} accessToken - Authorization access token
+     * @param {string} playlistId - Spotify playlist ID
+     * @param {Array} songs - List of Spotify song objects
      */
     function addPlaylistSongs(userId, accessToken, playlistId, songs) {
         return new Promise(function (resolve, reject) {
@@ -127,7 +142,7 @@
             }
 
             songs.forEach(function (song) {
-                if(song.uri){
+                if (song.uri) {
                     body.uris.push(song.uri);
                 }
             });
@@ -143,17 +158,17 @@
 
 
     /**
-     * 
-     * @param userId
-     * @param accessToken
-     * @param playlistTitle
+     * @summary Creates a new, empty Spotify playlist
+     * @param {string} userId - A Spotify user ID
+     * @param {string} accessToken - An authorization token
+     * @param {string} playlistTitle - Name of new playlist to create 
      */
     function createPlaylist(userId, accessToken, playlistTitle) {
         return new Promise(function (resolve, reject) {
             var body = {
                 name: playlistTitle,
                 public: false
-            }
+            };
 
             var endpoint = 'https://api.spotify.com/v1/users/' + userId + '/playlists';
 
