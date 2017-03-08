@@ -5,12 +5,14 @@
 
     setlistService.$inject = ['$http'];
 
+
     function setlistService($http) {
         return {
             getArtistSetlists: getArtistSetlists,
             getVenueSetlists: getVenueSetlists,
             postSetlistSongs: postSetlistSongs,
         };
+
 
         /**
          * Call out to getArtistSetlists endpoint
@@ -33,20 +35,31 @@
                 .catch(getFailed);
         };
 
-
+        /**
+         * 
+         * @param {*} sets 
+         */
         function postSetlistSongs(sets) {
             return $http.post('/recap/postSetlistSongs/', sets)
                 .then(getCompleted)
                 .catch(getFailed);
         }
 
+        /**
+         * 
+         * @param {*} response 
+         */
         function getCompleted(response) {
             return response.data;
         };
 
+        /**
+         * 
+         * @param {*} error 
+         */
         function getFailed(error) {
             return error;
         };
-    }
+    }; // end setlistService
 
 })();

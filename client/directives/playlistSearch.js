@@ -1,35 +1,13 @@
-﻿(function () {
+
+(function () {
     angular
         .module('recapApp')
-        .directive('showSelect', ShowSelect)
-        .directive('songList', SongList)
-        .directive('steps', Steps)
-        .directive('playlistSearch', PlaylistSearch)
+        .directive('playlistSearch', PlaylistSearch);
 
-    function ShowSelect() {
-        var directive = {
-            restrict: 'E',
-            templateUrl: '/recap/templates/showSelect.html'
-        };
-        return directive;
-    };
-
-    function SongList() {
-        var directive = {
-            restrict: 'E',
-            templateUrl: '/recap/templates/songList.html'
-        };
-        return directive;
-    };
-
-    function Steps() {
-        var directive = {
-            restrict: 'E',
-            templateUrl: '/recap/templates/steps.html'
-        };
-        return directive;
-    };
-
+    /**
+     * @summary Input element to search for artists or venues, depending on A/B test
+     * @returns - http://semantic-ui.com/modules/search.html
+     */
     function PlaylistSearch() {
         var directive = {
             restrict: 'E',
@@ -38,7 +16,7 @@
             controllerAs: 'sc',
             bindToController: true,
             link: function (scope, element) {
-                // jQuery to control step element
+                // jQuery to control step elements
                 $('#stepOne').click(function () {
                     $('#searchPrompt').removeClass('ng-hide');
                     $('#showList').addClass('ng-hide');
@@ -59,22 +37,23 @@
 
                 //Get an experiment alternative and change UI appropriately
                 var search = scope.sc.artistSearch();
-                 //var alt = scope.sc.participate(); //sixpack server not current running in prod
-                 //    .then(function (alt) {
-                 //        if (alt == 'venue') {
-                 //            $('#stepOneTitle').html('Venue');
-                 //            $('#stepOneIcon').removeClass('users').addClass('building');
-                 //            search = scope.sc.venueSearch();
-                 //            $('#searchPrompt').search(search);
-                 //        }
-                 //    });
+                // **comment out, sixpack server not current running in prod**
+                //var alt = scope.sc.participate(); 
+                //    .then(function (alt) {
+                //        if (alt == 'venue') {
+                //            $('#stepOneTitle').html('Venue');
+                //            $('#stepOneIcon').removeClass('users').addClass('building');
+                //            search = scope.sc.venueSearch();
+                //            $('#searchPrompt').search(search);
+                //        }
+                //    });
 
                 // Free-text search for either an artist or venue
                 $('#searchPrompt').search(search);
 
             } //end link function
-        }
+        };
         return directive;
     }; //end ArtistSearch
 
-})(); //end closure
+})(); //end closure 

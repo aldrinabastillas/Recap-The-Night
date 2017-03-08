@@ -1,5 +1,6 @@
 ﻿(function () {
     'use strict';
+
     // Modules
     var express = require('express');
     var path = require('path');
@@ -11,7 +12,8 @@
     var NodeCache = require("node-cache");
     var cache = new NodeCache();
     var setlist = require('./server/setlistModule');
-    var spotify = require('./server/spotifyModule'); //used to be spotifyPlaylistModule
+    var spotify = require('./server/spotifyModule');
+
 
     // Routes
     var router = express.Router();
@@ -27,10 +29,12 @@
     router.get('/spotifyLoggedIn', spotifyLoggedIn);
     router.get('/spotifyLogin', spotifyLogin);
 
+
     // Export
     module.exports = router;
 
-    //Route Functions
+
+    // Route Functions
 
     /**
      * 
