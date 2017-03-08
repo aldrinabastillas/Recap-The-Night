@@ -20,7 +20,7 @@
     router.use('/', express.static(__dirname + '/client/'));
     router.get('/getArtists/:query', getArtists);
     router.get('/getConvert/:clientId', getConvert);
-    router.get('/getArtistSetlists/:artist', getArtistSetlists);
+    router.get('/getArtistSetlists/:artistId', getArtistSetlists);
     router.get('/getVenueSetlists/:venueId', getVenueSetlists);
     router.get('/getVenues/:query', getVenues);
     router.get('/participate/:clientId', getParticipate);
@@ -36,10 +36,13 @@
 
     // Route Functions
 
+
     /**
-     * 
-     * @param {*} req 
-     * @param {*} res 
+     * @summary Converts a user given an experiment name and their clientId.
+     * Called by searchController.spotifyLogin()
+     * @param {Object} req - HTTP Request object
+     * @param {Object} res - HTTP Response object
+     * @requires A Sixpack server to be running
      */
     function getConvert(req, res) {
         var endpoint = 'http://localhost:5000/convert?' +
@@ -60,9 +63,10 @@
 
 
     /**
-     * 
-     * @param {*} req 
-     * @param {*} res 
+     * @summary Given a free-text query, search for artists in Spotify's library.
+     * Called by searchController.artistSearch()
+     * @param {Object} req - HTTP Request object
+     * @param {Object} res - HTTP Response object
      */
     function getArtists(req, res) {
         var artist = req.params.query;
@@ -83,14 +87,15 @@
 
 
     /**
-     * 
-     * @param {*} req - HTTP Request
-     * @param {*} res 
+     * @summary Given an artistId, search setlist.fm for their playlists.
+     * Called by setlistService.getArtistSetlists(), which is called by searchController.getArtistSetlists()
+     * @param {Object} req - HTTP Request object
+     * @param {Object} res - HTTP Response object
      */
     function getArtistSetlists(req, res) {
-        var artist = req.params.artist;
-        if (artist) {
-            setlist.getArtistSetlists(artist)
+        var artistId = req.params.artistId;
+        if (artistId) {
+            setlist.getArtistSetlists(artistId)
                 .then(function (setlists) {
                     res.json(setlists);
                 })
@@ -104,16 +109,18 @@
 
 
     /**
-     * 
-     * @param {*} req 
-     * @param {*} res 
+     * @summary Participate in an experiment.
+     * Called by sixpackService.participate() which is called by searchController.participate
+     * @param {Object} req - HTTP Request object
+     * @param {Object} res - HTTP Response object
+     * @requires A Sixpack server to be running
      */
     function getParticipate(req, res) {
         var endpoint = 'http://localhost:5000/participate?' +
             querystring.stringify({
                 experiment: 'recap-search',
                 alternatives: ['artist', 'venue'],
-                //force: 'venue', //for testing!
+                //force: 'venue', //for testing!!
                 client_id: req.params.clientId
             });
 
@@ -129,9 +136,10 @@
 
 
     /**
-     * 
-     * @param {*} req 
-     * @param {*} res 
+     * @summary Given a free-text search query, search setlist.fm for venues.
+     * Called by searchController.venueSearch()
+     * @param {Object} req - HTTP Request object
+     * @param {Object} res - HTTP Response object
      */
     function getVenues(req, res) {
         var query = req.params.query;
@@ -152,9 +160,10 @@
 
 
     /**
-     * 
-     * @param {*} req 
-     * @param {*} res 
+     * @summary Given a venueId, search setlist.fm for their setlists.
+     * Called by onSelect callback in searchController.venueSearch()
+     * @param {Object} req - HTTP Request object
+     * @param {Object} res - HTTP Response object
      */
     function getVenueSetlists(req, res) {
         var venueId = req.params.venueId;
@@ -173,8 +182,9 @@
 
 
     /**
-     * Helper function for joining current root path and the specified file
+     * @summary Helper function.
      * @param {string} file - rest of path relative to current directory
+     * @returns {string} Current root path concatenated with the specified file
      */
     function pathConcat(file) {
         return path.join(__dirname + file);
@@ -182,7 +192,10 @@
 
 
     /**
-     * Called from /module/recap/client/templates/setlistSearch.html
+     * @summary Given a POST'ed list of songs names, get their info from Spotify.
+     * Called from setlistService, which is called by searchController.getSetlistSongs()
+     * @param {Object} req - HTTP Request object
+     * @param {Object} res - HTTP Response object
      */
     function postSetlistSongs(req, res) {
         var sets = req.body;
@@ -201,9 +214,10 @@
 
 
     /**
-     * Saves a list of songs to Spotify
-     * Called by loggedInController.js
-     * Gets songs from the POST body and the code from the cache
+     * @summary Saves a POST'ed list of songs to Spotify.
+     * Called upon page load by loggedInController.js
+     * @param {Object} req - HTTP Request object
+     * @param {Object} res - HTTP Response object
      */
     function savePlaylist(req, res) {
         var playlist = req.body;
@@ -224,8 +238,10 @@
 
 
     /**
-     * Called by authentication redirect
-     * Redirects to a HTML page that shows the saved playlist
+     * @summary Redirects to a HTML page that shows the saved playlist.
+     * Called by the Spotify authentication redirect
+     * @param {Object} req - HTTP Request object
+     * @param {Object} res - HTTP Response object
      */
     function spotifyLoggedIn(req, res) {
         res.sendFile(pathConcat('/client/templates/spotifyLoggedIn.html'));
@@ -233,8 +249,10 @@
 
 
     /**
-     * Called from /module/recap/client/templates/spotifyLogin.html
-     * Redirects to the Spotify authentication page
+     * @summary Redirects to the Spotify authentication page.
+     * Called upon loading the popup, /module/recap/client/templates/spotifyLogin.html
+     * @param {Object} req - HTTP Request object
+     * @param {Object} res - HTTP Response object
      */
     function spotifyLogin(req, res) {
         spotify.spotifyLogin(req, res);
