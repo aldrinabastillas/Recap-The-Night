@@ -25,6 +25,7 @@
         $http.post('/recap/savePlaylist/' + code, playlist).then(function (response) {
             vm.playlistUrl = $sce.trustAsResourceUrl(response.data);
         }).catch(function (err) {
+            console.log(err);
             vm.error = true;
         });
     };
